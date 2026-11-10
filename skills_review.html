@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Võ Lâm Truyền Kỳ - Thư Viện Kỹ Năng (.SPR) [Mặc định 13 FPS]</title>
+  <style>
+    :root {
+      --bg-body: #0d0e12;
+      --bg-card: #16181f;
+      --border-card: #272a38;
+      --border-hover: #eab308;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #eab308;
+      --box-canvas-bg: #000000;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #12141a;
+      border-bottom: 1px solid var(--border-card);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .top-bar {
+      max-width: 1700px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .title-group h1 {
+      font-size: 19px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title-group h1 span.pill {
+      font-size: 11px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #d97706, #eab308);
+      color: #000;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .title-group p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .search-box {
+      position: relative;
+      min-width: 240px;
+    }
+    .search-box input {
+      width: 100%;
+      background: #1c1f2b;
+      border: 1px solid #2e3447;
+      border-radius: 8px;
+      color: #fff;
+      padding: 7px 12px 7px 34px;
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-box input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.25);
+    }
+    .search-box svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    select, button {
+      background: #1c1f2b;
+      border: 1px solid #2e3447;
+      color: #fff;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+    }
+    select:hover, button:hover {
+      border-color: #434c68;
+    }
+    button.active {
+      background: #ca8a04;
+      border-color: #eab308;
+      color: #000;
+      font-weight: 600;
+    }
+
+    /* FPS Control Bar (Special Feature) */
+    .fps-control-bar {
+      max-width: 1700px;
+      margin: 0 auto;
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: #0f1117;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .fps-slider-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .fps-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #eab308;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .fps-badge {
+      background: #ca8a04;
+      color: #000;
+      font-family: monospace;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      min-width: 58px;
+      text-align: center;
+    }
+    .fps-slider {
+      width: 140px;
+      accent-color: #eab308;
+      cursor: pointer;
+    }
+    .fps-presets {
+      display: flex;
+      gap: 4px;
+    }
+    .fps-btn {
+      padding: 3px 8px;
+      font-size: 11px;
+      border-radius: 6px;
+      background: #1b1e2a;
+      border: 1px solid #2e3447;
+      color: #94a3b8;
+    }
+    .fps-btn.active {
+      background: #ca8a04;
+      color: #000;
+      font-weight: 700;
+      border-color: #eab308;
+    }
+
+    .play-pause-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      background: #232738;
+      border: 1px solid #353b52;
+    }
+    .play-pause-btn:hover { background: #30364c; }
+
+    .filter-tabs {
+      max-width: 1700px;
+      margin: 0 auto;
+      padding: 8px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid #282c3c;
+      color: #94a3b8;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .tab-btn:hover {
+      background: #1e2230;
+      color: #fff;
+    }
+    .tab-btn.active {
+      background: rgba(234, 179, 8, 0.15);
+      border-color: #eab308;
+      color: #eab308;
+      font-weight: 600;
+    }
+    .tab-btn .count {
+      font-size: 10px;
+      opacity: 0.7;
+      background: rgba(255,255,255,0.1);
+      padding: 1px 5px;
+      border-radius: 10px;
+    }
+
+    /* Sub-bar for Display Options */
+    .view-toolbar {
+      max-width: 1700px;
+      margin: 0 auto;
+      padding: 6px 24px 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .view-mode-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bg-toggles {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bg-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #333;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .bg-circle:hover { transform: scale(1.15); }
+    .bg-circle.active { border-color: #eab308; }
+    .bg-black { background: #000; }
+    .bg-dark { background: #1c1f2b; }
+    .bg-grid {
+      background: repeating-conic-gradient(#222 0% 25%, #333 0% 50%) 50% / 10px 10px;
+    }
+    .bg-white { background: #ffffff; }
+
+    /* Main Container */
+    main {
+      max-width: 1700px;
+      margin: 0 auto;
+      padding: 16px 24px 60px 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Grid Layout - Uniform Grid Mode */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* Proportional Mode - Square Box Sized to Sprite */
+    .grid-container.proportional-mode {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+
+    .spr-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+    .spr-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-hover);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+    }
+
+    /* Square Canvas Box: User specifically requested each in a box sized based on its dimensions */
+    .canvas-box-wrap {
+      background: var(--box-canvas-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border-card);
+      transition: background 0.2s;
+    }
+
+    /* Default Uniform Grid Canvas Box */
+    .grid-container:not(.proportional-mode) .canvas-box-wrap {
+      width: 100%;
+      height: 240px;
+    }
+
+    /* Proportional Canvas Box: Dimensions derived from sprite */
+    .grid-container.proportional-mode .spr-card {
+      width: calc(var(--box-w, 240px) * var(--zoom-scale, 1));
+      max-width: 100%;
+    }
+
+    .grid-container.proportional-mode .canvas-box-wrap {
+      width: 100%;
+      height: calc(var(--box-h, 240px) * var(--zoom-scale, 1));
+      min-height: 120px;
+    }
+
+    .canvas-box-wrap canvas {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 0 12px rgba(255,255,255,0.06));
+    }
+
+    /* Dimension Overlay Badge */
+    .dim-badge {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      font-size: 11px;
+      font-family: monospace;
+      padding: 2px 6px;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    .frame-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fbbf24;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    .fps-indicator-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #38bdf8;
+      font-size: 10px;
+      font-family: monospace;
+      padding: 2px 5px;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    /* Card Info */
+    .card-body {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .card-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .sect-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+      white-space: nowrap;
+    }
+
+    .skill-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .file-name {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 4px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal-card {
+      background: #14161f;
+      border: 1px solid #2e3447;
+      border-radius: 16px;
+      max-width: 900px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid #232738;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header h2 {
+      font-size: 17px;
+      color: #fff;
+    }
+    .modal-close {
+      background: #1f2333;
+      border: none;
+      color: #94a3b8;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .modal-close:hover { color: #fff; background: #323850; }
+
+    .modal-preview-area {
+      background: #000;
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border-bottom: 1px solid #232738;
+      padding: 20px;
+    }
+    .modal-preview-area canvas {
+      max-width: 100%;
+      max-height: 440px;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .modal-player-bar {
+      width: 100%;
+      max-width: 600px;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #12141c;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid #232738;
+    }
+
+    .modal-details {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .detail-item {
+      background: #1b1e2a;
+      border: 1px solid #262a3c;
+      padding: 10px 14px;
+      border-radius: 8px;
+    }
+    .detail-label {
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .detail-value {
+      font-size: 14px;
+      color: #fff;
+      font-weight: 600;
+      font-family: monospace;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: #64748b;
+      font-size: 16px;
+      grid-column: 1 / -1;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="top-bar">
+    <div class="title-group">
+      <h1>
+        Võ Lâm Truyền Kỳ (.SPR)
+        <span class="pill">257 Skills</span>
+      </h1>
+      <p>Thư viện xem trước và điều chỉnh hoạt cảnh kỹ năng trích xuất từ <code>skills.pak</code></p>
+    </div>
+
+    <div class="controls-row">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" placeholder="Tìm tên skill, file .spr, môn phái...">
+      </div>
+
+      <select id="sortSelect">
+        <option value="sect">Sắp xếp: Theo môn phái</option>
+        <option value="size_desc">Kích thước: Lớn nhất trước</option>
+        <option value="size_asc">Kích thước: Nhỏ nhất trước</option>
+        <option value="frames_desc">Số frames: Nhiều nhất trước</option>
+        <option value="name">Tên file (A-Z)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- FPS Adjustment Bar (Mặc định 13 FPS) -->
+  <div class="fps-control-bar">
+    <div class="fps-slider-group">
+      <span class="fps-label">
+        ⚡ Tốc độ khung hình (FPS):
+      </span>
+      <span class="fps-badge" id="fpsDisplay">13 fps</span>
+      <input type="range" class="fps-slider" id="fpsSlider" min="1" max="60" value="13" step="1">
+      <div class="fps-presets">
+        <button class="fps-btn" data-fps="5">5 fps</button>
+        <button class="fps-btn" data-fps="10">10 fps</button>
+        <button class="fps-btn active" data-fps="13">13 fps (Chuẩn VLTK)</button>
+        <button class="fps-btn" data-fps="20">20 fps</button>
+        <button class="fps-btn" data-fps="30">30 fps</button>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button class="play-pause-btn" id="globalPlayPauseBtn">
+        <span id="playPauseIcon">⏸</span>
+        <span id="playPauseText">Tạm dừng</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="filter-tabs" id="sectTabs">
+    <!-- Populated by JS -->
+  </div>
+
+  <div class="view-toolbar">
+    <div class="view-mode-group">
+      <span>Chế độ ô vuông:</span>
+      <button id="btnModeProp" class="active" title="Mỗi sprite nằm trong ô vuông có kích thước tương ứng độ phân giải">
+        📐 Theo kích thước thật
+      </button>
+      <button id="btnModeGrid" title="Tất cả sprite nằm trong lưới kích thước đồng đều">
+        ▦ Lưới đồng đều
+      </button>
+      <div style="margin-left: 12px; display: inline-flex; align-items: center; gap: 6px;">
+        <label for="zoomRange">Zoom:</label>
+        <input type="range" id="zoomRange" min="0.5" max="1.8" step="0.1" value="1.0" style="width: 100px; accent-color: #eab308;">
+        <span id="zoomVal" style="font-family: monospace;">1.0x</span>
+      </div>
+    </div>
+
+    <div class="bg-toggles">
+      <span>Nền hiển thị:</span>
+      <div class="bg-circle bg-black active" data-bg="#000000" title="Nền Đen (Mặc định - hiển thị hiệu ứng phát sáng đẹp nhất)"></div>
+      <div class="bg-circle bg-dark" data-bg="#1c1f2b" title="Nền Xám Đậm"></div>
+      <div class="bg-circle bg-grid" data-bg="grid" title="Nền Lưới Trong Suốt (Alpha Checkerboard)"></div>
+      <div class="bg-circle bg-white" data-bg="#ffffff" title="Nền Trắng"></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="grid-container proportional-mode" id="sprGrid">
+    <!-- Sprites injected here -->
+  </div>
+</main>
+
+<!-- Modal Player -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 id="modalTitle">Chi tiết Kỹ Năng</h2>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-preview-area" id="modalPreview">
+      <canvas id="modalCanvas"></canvas>
+      <div class="modal-player-bar">
+        <button id="modalPlayPause" class="fps-btn">⏸ Dừng</button>
+        <button id="modalPrevFrame" class="fps-btn">◀ Frame</button>
+        <span id="modalFrameIndicator" style="font-family: monospace; font-size: 12px; color: #eab308;">Frame: 0 / 0</span>
+        <button id="modalNextFrame" class="fps-btn">Frame ▶</button>
+        <input type="range" id="modalTimeline" min="0" max="10" value="0" style="flex: 1; accent-color: #eab308; cursor: pointer;">
+      </div>
+    </div>
+    <div class="modal-details" id="modalDetails">
+      <!-- Injected -->
+    </div>
+  </div>
+</div>
+
+<script>
+  const SPR_DATA = [{"id": 1, "file_name": "star1.spr", "rel_path": "christmas/star1.spr", "sect": "Giáng Sinh", "sect_color": "#14b8a6", "skill_vi": "star1", "skill_id": "-", "width": 67, "height": 69, "max_dim": 69, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 100, "file_size": 40506, "webp_url": "Client_VLTK_SHXT/data/skills/preview/christmas_star1.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/christmas_star1.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/christmas_star1_sheet.webp"}, {"id": 2, "file_name": "star2.spr", "rel_path": "christmas/star2.spr", "sect": "Giáng Sinh", "sect_color": "#14b8a6", "skill_vi": "star2", "skill_id": "-", "width": 67, "height": 69, "max_dim": 69, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 100, "file_size": 40506, "webp_url": "Client_VLTK_SHXT/data/skills/preview/christmas_star2.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/christmas_star2.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/christmas_star2_sheet.webp"}, {"id": 3, "file_name": "xx_风雪冰天.spr", "rel_path": "cy/xx_风雪冰天.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Phong Tuyểt Bông Thiưn", "skill_id": "148", "width": 400, "height": 400, "max_dim": 400, "frames": 40, "dirs": 1, "frames_per_dir": 40, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 50, "file_size": 829908, "webp_url": "Client_VLTK_SHXT/data/skills/preview/cy_xx_风雪冰天.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/cy_xx_风雪冰天.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/cy_xx_风雪冰天_sheet.webp"}, {"id": 4, "file_name": "冰心雪莲01.spr", "rel_path": "cy/冰心雪莲01.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Bông Tơm Ngõc Lông", "skill_id": "187", "width": 200, "height": 150, "max_dim": 200, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 50, "file_size": 107617, "webp_url": "Client_VLTK_SHXT/data/skills/preview/cy_冰心雪莲01.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/cy_冰心雪莲01.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/cy_冰心雪莲01_sheet.webp"}, {"id": 5, "file_name": "冰心雪莲爆炸.spr", "rel_path": "cy/冰心雪莲爆炸.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Bông Tơm Tuyểt Liưn", "skill_id": "188", "width": 320, "height": 240, "max_dim": 320, "frames": 22, "dirs": 1, "frames_per_dir": 22, "rendered_frames": 22, "cols": 8, "rows": 3, "interval": 50, "file_size": 264172, "webp_url": "Client_VLTK_SHXT/data/skills/preview/cy_冰心雪莲爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/cy_冰心雪莲爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/cy_冰心雪莲爆炸_sheet.webp"}, {"id": 6, "file_name": "风雪冰天.spr", "rel_path": "cy/风雪冰天.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Bông Tơm Tiưn Tũ", "skill_id": "147", "width": 320, "height": 320, "max_dim": 320, "frames": 128, "dirs": 16, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 50, "file_size": 841670, "webp_url": "Client_VLTK_SHXT/data/skills/preview/cy_风雪冰天.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/cy_风雪冰天.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/cy_风雪冰天_sheet.webp"}, {"id": 7, "file_name": "em_冰心梵音.spr", "rel_path": "em/em_冰心梵音.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Thanh Đm Phạn X?ớng", "skill_id": "115", "width": 400, "height": 400, "max_dim": 400, "frames": 40, "dirs": 1, "frames_per_dir": 40, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 1, "file_size": 1249986, "webp_url": "Client_VLTK_SHXT/data/skills/preview/em_em_冰心梵音.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/em_em_冰心梵音.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/em_em_冰心梵音_sheet.webp"}, {"id": 8, "file_name": "em_菠萝心经.spr", "rel_path": "em/em_菠萝心经.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "em_菠萝心经", "skill_id": "-", "width": 180, "height": 180, "max_dim": 180, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 100, "file_size": 56597, "webp_url": "Client_VLTK_SHXT/data/skills/preview/em_em_菠萝心经.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/em_em_菠萝心经.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/em_em_菠萝心经_sheet.webp"}, {"id": 9, "file_name": "em_风霜碎影_下落.spr", "rel_path": "em/em_风霜碎影_下落.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Tuyểt ánh Họng Trấn", "skill_id": "219", "width": 450, "height": 450, "max_dim": 450, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 1, "file_size": 798046, "webp_url": "Client_VLTK_SHXT/data/skills/preview/em_em_风霜碎影_下落.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/em_em_风霜碎影_下落.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/em_em_风霜碎影_下落_sheet.webp"}, {"id": 10, "file_name": "em_风霜碎影_平飞.spr", "rel_path": "em/em_风霜碎影_平飞.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Th?i Song Võng Nguyễt", "skill_id": "191", "width": 240, "height": 240, "max_dim": 240, "frames": 96, "dirs": 16, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 1, "file_size": 306299, "webp_url": "Client_VLTK_SHXT/data/skills/preview/em_em_风霜碎影_平飞.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/em_em_风霜碎影_平飞.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/em_em_风霜碎影_平飞_sheet.webp"}, {"id": 11, "file_name": "轻音梵唱.spr", "rel_path": "em/轻音梵唱.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "轻音梵唱", "skill_id": "-", "width": 300, "height": 300, "max_dim": 300, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 50, "file_size": 140404, "webp_url": "Client_VLTK_SHXT/data/skills/preview/em_轻音梵唱.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/em_轻音梵唱.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/em_轻音梵唱_sheet.webp"}, {"id": 12, "file_name": "打狗阵.spr", "rel_path": "gb/打狗阵.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "打狗阵", "skill_id": "-", "width": 320, "height": 240, "max_dim": 320, "frames": 18, "dirs": 1, "frames_per_dir": 18, "rendered_frames": 18, "cols": 8, "rows": 3, "interval": 100, "file_size": 32572, "webp_url": "Client_VLTK_SHXT/data/skills/preview/gb_打狗阵.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/gb_打狗阵.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/gb_打狗阵_sheet.webp"}, {"id": 13, "file_name": "滑不留手.spr", "rel_path": "gb/滑不留手.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "滑不留手", "skill_id": "-", "width": 320, "height": 240, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 11424, "webp_url": "Client_VLTK_SHXT/data/skills/preview/gb_滑不留手.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/gb_滑不留手.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/gb_滑不留手_sheet.webp"}, {"id": 14, "file_name": "龙战于野.spr", "rel_path": "gb/龙战于野.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "Long Chiển ? Dả", "skill_id": "167", "width": 240, "height": 240, "max_dim": 240, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 109534, "webp_url": "Client_VLTK_SHXT/data/skills/preview/gb_龙战于野.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/gb_龙战于野.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/gb_龙战于野_sheet.webp"}, {"id": 15, "file_name": "1jia.spr", "rel_path": "gongcheng/1jia.spr", "sect": "Công Thành", "sect_color": "#d97706", "skill_vi": "1jia", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 14, "dirs": 1, "frames_per_dir": 14, "rendered_frames": 14, "cols": 8, "rows": 2, "interval": 50, "file_size": 136662, "webp_url": "Client_VLTK_SHXT/data/skills/preview/gongcheng_1jia.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/gongcheng_1jia.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/gongcheng_1jia_sheet.webp"}, {"id": 16, "file_name": "一气三清符.spr", "rel_path": "kl/一气三清符.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "一气三清符", "skill_id": "-", "width": 640, "height": 480, "max_dim": 640, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 133, "file_size": 30850, "webp_url": "Client_VLTK_SHXT/data/skills/preview/kl_一气三清符.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/kl_一气三清符.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/kl_一气三清符_sheet.webp"}, {"id": 17, "file_name": "傲雪萧风.spr", "rel_path": "kl/傲雪萧风.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Khiểu Phong Tam Liưn Kích", "skill_id": "179", "width": 400, "height": 400, "max_dim": 400, "frames": 54, "dirs": 1, "frames_per_dir": 54, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 50, "file_size": 692651, "webp_url": "Client_VLTK_SHXT/data/skills/preview/kl_傲雪萧风.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/kl_傲雪萧风.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/kl_傲雪萧风_sheet.webp"}, {"id": 18, "file_name": "雷动九天.spr", "rel_path": "kl/雷动九天.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "L?i ?ỗng Cũu Thiưn", "skill_id": "181", "width": 400, "height": 400, "max_dim": 400, "frames": 6, "dirs": 1, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 50, "file_size": 98752, "webp_url": "Client_VLTK_SHXT/data/skills/preview/kl_雷动九天.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/kl_雷动九天.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/kl_雷动九天_sheet.webp"}, {"id": 19, "file_name": "mag_npc_口水.spr", "rel_path": "npc/mag_npc_口水.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "N?ớc miểng", "skill_id": "90", "width": 100, "height": 100, "max_dim": 100, "frames": 64, "dirs": 16, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 40, "file_size": 41793, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_口水.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_口水.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_口水_sheet.webp"}, {"id": 20, "file_name": "mag_npc_尖毛.spr", "rel_path": "npc/mag_npc_尖毛.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "1 dùm l?ng", "skill_id": "89", "width": 200, "height": 200, "max_dim": 200, "frames": 64, "dirs": 16, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 20, "file_size": 91366, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_尖毛.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_尖毛.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_尖毛_sheet.webp"}, {"id": 21, "file_name": "mag_npc_毒水.spr", "rel_path": "npc/mag_npc_毒水.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "N?ớc ?ỗc", "skill_id": "91", "width": 100, "height": 100, "max_dim": 100, "frames": 64, "dirs": 1, "frames_per_dir": 64, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 40, "file_size": 38537, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_毒水.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_毒水.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_毒水_sheet.webp"}, {"id": 22, "file_name": "mag_npc_毒水消失.spr", "rel_path": "npc/mag_npc_毒水消失.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "N?ớc ?ỗc", "skill_id": "91", "width": 120, "height": 120, "max_dim": 120, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 30, "file_size": 57515, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_毒水消失.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_毒水消失.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_毒水消失_sheet.webp"}, {"id": 23, "file_name": "mag_npc_短毛.spr", "rel_path": "npc/mag_npc_短毛.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "L?ng", "skill_id": "88", "width": 200, "height": 200, "max_dim": 200, "frames": 64, "dirs": 16, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 20, "file_size": 74638, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_短毛.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_短毛.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_短毛_sheet.webp"}, {"id": 24, "file_name": "mag_npc_石头.spr", "rel_path": "npc/mag_npc_石头.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "?á", "skill_id": "87", "width": 100, "height": 100, "max_dim": 100, "frames": 9, "dirs": 1, "frames_per_dir": 9, "rendered_frames": 9, "cols": 8, "rows": 2, "interval": 40, "file_size": 2355, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_石头.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_石头.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_石头_sheet.webp"}, {"id": 25, "file_name": "mag_npc_箭.spr", "rel_path": "npc/mag_npc_箭.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "Bắn tưn", "skill_id": "93", "width": 70, "height": 70, "max_dim": 70, "frames": 16, "dirs": 16, "frames_per_dir": 1, "rendered_frames": 1, "cols": 1, "rows": 1, "interval": 40, "file_size": 7051, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_箭.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_箭.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_mag_npc_箭_sheet.webp"}, {"id": 26, "file_name": "投石冰.spr", "rel_path": "npc/投石冰.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "?ấu Thạch ?an (Bông)", "skill_id": "132", "width": 320, "height": 320, "max_dim": 320, "frames": 36, "dirs": 1, "frames_per_dir": 36, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 20, "file_size": 123422, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石冰.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石冰.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石冰_sheet.webp"}, {"id": 27, "file_name": "投石冰爆炸.spr", "rel_path": "npc/投石冰爆炸.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "?ấu Thạch ?an (Bông)", "skill_id": "132", "width": 500, "height": 500, "max_dim": 500, "frames": 27, "dirs": 1, "frames_per_dir": 27, "rendered_frames": 27, "cols": 8, "rows": 4, "interval": 50, "file_size": 648466, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石冰爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石冰爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石冰爆炸_sheet.webp"}, {"id": 28, "file_name": "投石普.spr", "rel_path": "npc/投石普.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "?ấu Thạch ?an (Vât lý)", "skill_id": "129", "width": 320, "height": 320, "max_dim": 320, "frames": 36, "dirs": 1, "frames_per_dir": 36, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 20, "file_size": 66588, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石普.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石普.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石普_sheet.webp"}, {"id": 29, "file_name": "投石普爆炸.spr", "rel_path": "npc/投石普爆炸.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "?ấu Thạch ?an (Vât lý)", "skill_id": "129", "width": 500, "height": 500, "max_dim": 500, "frames": 27, "dirs": 1, "frames_per_dir": 27, "rendered_frames": 27, "cols": 8, "rows": 4, "interval": 50, "file_size": 558092, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石普爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石普爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石普爆炸_sheet.webp"}, {"id": 30, "file_name": "投石毒.spr", "rel_path": "npc/投石毒.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "?ấu Thạch ?an (?ỗc )", "skill_id": "133", "width": 320, "height": 320, "max_dim": 320, "frames": 36, "dirs": 1, "frames_per_dir": 36, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 20, "file_size": 128785, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石毒.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石毒.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石毒_sheet.webp"}, {"id": 31, "file_name": "投石毒爆炸.spr", "rel_path": "npc/投石毒爆炸.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "?ấu Thạch ?an (?ỗc )", "skill_id": "133", "width": 500, "height": 500, "max_dim": 500, "frames": 27, "dirs": 1, "frames_per_dir": 27, "rendered_frames": 27, "cols": 8, "rows": 4, "interval": 50, "file_size": 570900, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石毒爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石毒爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石毒爆炸_sheet.webp"}, {"id": 32, "file_name": "投石火.spr", "rel_path": "npc/投石火.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "?ấu Thạch ?an (Hòa)", "skill_id": "131", "width": 320, "height": 320, "max_dim": 320, "frames": 36, "dirs": 1, "frames_per_dir": 36, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 20, "file_size": 148754, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石火.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石火.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石火_sheet.webp"}, {"id": 33, "file_name": "投石火爆炸.spr", "rel_path": "npc/投石火爆炸.spr", "sect": "NPC / Quái", "sect_color": "#94a3b8", "skill_vi": "?ấu Thạch ?an (Hòa)", "skill_id": "131", "width": 500, "height": 500, "max_dim": 500, "frames": 27, "dirs": 1, "frames_per_dir": 27, "rendered_frames": 27, "cols": 8, "rows": 4, "interval": 50, "file_size": 667983, "webp_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石火爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石火爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/npc_投石火爆炸_sheet.webp"}, {"id": 34, "file_name": "c.spr", "rel_path": "others/c.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "c", "skill_id": "-", "width": 640, "height": 480, "max_dim": 640, "frames": 13, "dirs": 1, "frames_per_dir": 13, "rendered_frames": 13, "cols": 8, "rows": 2, "interval": 38, "file_size": 136588, "webp_url": "Client_VLTK_SHXT/data/skills/preview/others_c.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/others_c.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/others_c_sheet.webp"}, {"id": 35, "file_name": "lucky.spr", "rel_path": "others/lucky.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "lucky", "skill_id": "-", "width": 144, "height": 144, "max_dim": 144, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 11164, "webp_url": "Client_VLTK_SHXT/data/skills/preview/others_lucky.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/others_lucky.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/others_lucky_sheet.webp"}, {"id": 36, "file_name": "奎木星照.spr", "rel_path": "others/奎木星照.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "奎木星照", "skill_id": "-", "width": 640, "height": 480, "max_dim": 640, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 133, "file_size": 33315, "webp_url": "Client_VLTK_SHXT/data/skills/preview/others_奎木星照.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/others_奎木星照.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/others_奎木星照_sheet.webp"}, {"id": 37, "file_name": "奔流到海.spr", "rel_path": "others/奔流到海.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "奔流到海", "skill_id": "-", "width": 640, "height": 480, "max_dim": 640, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 133, "file_size": 32722, "webp_url": "Client_VLTK_SHXT/data/skills/preview/others_奔流到海.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/others_奔流到海.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/others_奔流到海_sheet.webp"}, {"id": 38, "file_name": "孤木遁雷.spr", "rel_path": "others/孤木遁雷.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "孤木遁雷", "skill_id": "-", "width": 640, "height": 480, "max_dim": 640, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 133, "file_size": 27948, "webp_url": "Client_VLTK_SHXT/data/skills/preview/others_孤木遁雷.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/others_孤木遁雷.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/others_孤木遁雷_sheet.webp"}, {"id": 39, "file_name": "金乌映雪.spr", "rel_path": "others/金乌映雪.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "金乌映雪", "skill_id": "-", "width": 640, "height": 480, "max_dim": 640, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 133, "file_size": 29578, "webp_url": "Client_VLTK_SHXT/data/skills/preview/others_金乌映雪.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/others_金乌映雪.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/others_金乌映雪_sheet.webp"}, {"id": 40, "file_name": "bz_横扫千军.spr", "rel_path": "sl/bz_横扫千军.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "Hoành Tão Thiưn Quơn", "skill_id": "135", "width": 350, "height": 350, "max_dim": 350, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 50, "file_size": 132932, "webp_url": "Client_VLTK_SHXT/data/skills/preview/sl_bz_横扫千军.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/sl_bz_横扫千军.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/sl_bz_横扫千军_sheet.webp"}, {"id": 41, "file_name": "慧眼咒.spr", "rel_path": "sl/慧眼咒.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "Tuệ Nhãn Chú", "skill_id": "-", "width": 640, "height": 480, "max_dim": 640, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 33, "file_size": 85896, "webp_url": "Client_VLTK_SHXT/data/skills/preview/sl_慧眼咒.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/sl_慧眼咒.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/sl_慧眼咒_sheet.webp"}, {"id": 42, "file_name": "无向斩.spr", "rel_path": "sl/无向斩.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "V? T?ớng Trãm", "skill_id": "136", "width": 320, "height": 320, "max_dim": 320, "frames": 128, "dirs": 16, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 50, "file_size": 593048, "webp_url": "Client_VLTK_SHXT/data/skills/preview/sl_无向斩.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/sl_无向斩.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/sl_无向斩_sheet.webp"}, {"id": 43, "file_name": "金龙探爪.spr", "rel_path": "sl/金龙探爪.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "Kim Phât Xuăt Kích", "skill_id": "134", "width": 240, "height": 240, "max_dim": 240, "frames": 6, "dirs": 1, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 41, "file_size": 12597, "webp_url": "Client_VLTK_SHXT/data/skills/preview/sl_金龙探爪.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/sl_金龙探爪.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/sl_金龙探爪_sheet.webp"}, {"id": 44, "file_name": "bz_寒冰刺.spr", "rel_path": "tm/bz_寒冰刺.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Hàn Bông Thích", "skill_id": "156", "width": 400, "height": 400, "max_dim": 400, "frames": 27, "dirs": 1, "frames_per_dir": 27, "rendered_frames": 27, "cols": 8, "rows": 4, "interval": 50, "file_size": 455767, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_bz_寒冰刺.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_bz_寒冰刺.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_bz_寒冰刺_sheet.webp"}, {"id": 45, "file_name": "bz_紫色陷阱.spr", "rel_path": "tm/bz_紫色陷阱.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Loạn Hoàn Kích", "skill_id": "162", "width": 400, "height": 400, "max_dim": 400, "frames": 27, "dirs": 1, "frames_per_dir": 27, "rendered_frames": 27, "cols": 8, "rows": 4, "interval": 50, "file_size": 410432, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_bz_紫色陷阱.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_bz_紫色陷阱.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_bz_紫色陷阱_sheet.webp"}, {"id": 46, "file_name": "bz_银刀射月.spr", "rel_path": "tm/bz_银刀射月.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Ngơn ?ao Xạ Nguyễt", "skill_id": "150", "width": 400, "height": 400, "max_dim": 400, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 50, "file_size": 212313, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_bz_银刀射月.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_bz_银刀射月.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_bz_银刀射月_sheet.webp"}, {"id": 47, "file_name": "xj_地焰火.01.spr", "rel_path": "tm/xj_地焰火.01.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "?ĩa Diễm Hòa", "skill_id": "157", "width": 320, "height": 240, "max_dim": 320, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 50, "file_size": 124687, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_地焰火.01.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_地焰火.01.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_地焰火.01_sheet.webp"}, {"id": 48, "file_name": "xj_寒冰刺.spr", "rel_path": "tm/xj_寒冰刺.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Hàn Bông Thích", "skill_id": "155", "width": 320, "height": 240, "max_dim": 320, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 50, "file_size": 137174, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_寒冰刺.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_寒冰刺.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_寒冰刺_sheet.webp"}, {"id": 49, "file_name": "xj_穿心刺.spr", "rel_path": "tm/xj_穿心刺.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Xuyưn Tơm Thích", "skill_id": "153", "width": 320, "height": 240, "max_dim": 320, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 50, "file_size": 142332, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_穿心刺.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_穿心刺.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_穿心刺_sheet.webp"}, {"id": 50, "file_name": "xj_紫色陷阱.spr", "rel_path": "tm/xj_紫色陷阱.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Loạn Hoàn Kích", "skill_id": "161", "width": 320, "height": 240, "max_dim": 320, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 50, "file_size": 140150, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_紫色陷阱.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_紫色陷阱.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_紫色陷阱_sheet.webp"}, {"id": 51, "file_name": "xj_雷击术.spr", "rel_path": "tm/xj_雷击术.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "L?i Kích Thuât", "skill_id": "159", "width": 320, "height": 240, "max_dim": 320, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 50, "file_size": 169363, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_雷击术.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_雷击术.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_xj_雷击术_sheet.webp"}, {"id": 52, "file_name": "九宫飞星.spr", "rel_path": "tm/九宫飞星.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Cũu Cung Phi Tinh", "skill_id": "152", "width": 200, "height": 200, "max_dim": 200, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 50, "file_size": 3719, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_九宫飞星.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_九宫飞星.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_九宫飞星_sheet.webp"}, {"id": 53, "file_name": "地焰火.spr", "rel_path": "tm/地焰火.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "?ĩa Diễm Hòa", "skill_id": "158", "width": 400, "height": 400, "max_dim": 400, "frames": 27, "dirs": 1, "frames_per_dir": 27, "rendered_frames": 27, "cols": 8, "rows": 4, "interval": 50, "file_size": 653803, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_地焰火.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_地焰火.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_地焰火_sheet.webp"}, {"id": 54, "file_name": "忍者镖.spr", "rel_path": "tm/忍者镖.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Tán Hoa Tiưu", "skill_id": "151", "width": 120, "height": 120, "max_dim": 120, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 10929, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_忍者镖.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_忍者镖.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_忍者镖_sheet.webp"}, {"id": 55, "file_name": "穿心刺.spr", "rel_path": "tm/穿心刺.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Xuyưn Tơm Thích", "skill_id": "154", "width": 400, "height": 400, "max_dim": 400, "frames": 27, "dirs": 1, "frames_per_dir": 27, "rendered_frames": 27, "cols": 8, "rows": 4, "interval": 50, "file_size": 385130, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_穿心刺.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_穿心刺.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_穿心刺_sheet.webp"}, {"id": 56, "file_name": "银刀射月_02.spr", "rel_path": "tm/银刀射月_02.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Nhiểp Họn Nguyễt ãnh", "skill_id": "149", "width": 300, "height": 300, "max_dim": 300, "frames": 18, "dirs": 1, "frames_per_dir": 18, "rendered_frames": 18, "cols": 8, "rows": 3, "interval": 50, "file_size": 31341, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_银刀射月_02.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_银刀射月_02.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_银刀射月_02_sheet.webp"}, {"id": 57, "file_name": "雷击术.spr", "rel_path": "tm/雷击术.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "L?i Kích Thuât", "skill_id": "160", "width": 400, "height": 400, "max_dim": 400, "frames": 27, "dirs": 1, "frames_per_dir": 27, "rendered_frames": 27, "cols": 8, "rows": 4, "interval": 50, "file_size": 423336, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tm_雷击术.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tm_雷击术.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tm_雷击术_sheet.webp"}, {"id": 58, "file_name": "zd_业火焚城.spr", "rel_path": "tr/zd_业火焚城.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Thiưn Ngoại L?u Tinh", "skill_id": "171", "width": 400, "height": 400, "max_dim": 400, "frames": 18, "dirs": 1, "frames_per_dir": 18, "rendered_frames": 18, "cols": 8, "rows": 3, "interval": 50, "file_size": 106153, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tr_zd_业火焚城.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tr_zd_业火焚城.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tr_zd_业火焚城_sheet.webp"}, {"id": 59, "file_name": "业火焚城.spr", "rel_path": "tr/业火焚城.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Nghiễp Hòa Phàn Thành", "skill_id": "170", "width": 500, "height": 500, "max_dim": 500, "frames": 35, "dirs": 1, "frames_per_dir": 35, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 42, "file_size": 1144588, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tr_业火焚城.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tr_业火焚城.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tr_业火焚城_sheet.webp"}, {"id": 60, "file_name": "云龙击.spr", "rel_path": "tr/云龙击.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Vơn Long Kích", "skill_id": "169", "width": 240, "height": 240, "max_dim": 240, "frames": 6, "dirs": 1, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 50, "file_size": 18293, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tr_云龙击.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tr_云龙击.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tr_云龙击_sheet.webp"}, {"id": 61, "file_name": "悲酥清风.spr", "rel_path": "tr/悲酥清风.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "悲酥清风", "skill_id": "-", "width": 320, "height": 240, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 21687, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tr_悲酥清风.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tr_悲酥清风.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tr_悲酥清风_sheet.webp"}, {"id": 62, "file_name": "追风决.spr", "rel_path": "tw/追风决.spr", "sect": "Thiên Vương", "sect_color": "#eab308", "skill_vi": "Phá Thiưn Trãm", "skill_id": "138", "width": 320, "height": 320, "max_dim": 320, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 50, "file_size": 11906, "webp_url": "Client_VLTK_SHXT/data/skills/preview/tw_追风决.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/tw_追风决.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/tw_追风决_sheet.webp"}, {"id": 63, "file_name": "skill_0x106723aa.spr", "rel_path": "unknown/skill_0x106723aa.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0x106723aa", "skill_id": "-", "width": 200, "height": 200, "max_dim": 200, "frames": 5, "dirs": 1, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 1, "file_size": 9422, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x106723aa.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x106723aa.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x106723aa_sheet.webp"}, {"id": 64, "file_name": "skill_0x30c523b8.spr", "rel_path": "unknown/skill_0x30c523b8.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0x30c523b8", "skill_id": "-", "width": 100, "height": 100, "max_dim": 100, "frames": 40, "dirs": 1, "frames_per_dir": 40, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 40, "file_size": 74326, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x30c523b8.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x30c523b8.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x30c523b8_sheet.webp"}, {"id": 65, "file_name": "skill_0x33919c0a.spr", "rel_path": "unknown/skill_0x33919c0a.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0x33919c0a", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 4, "dirs": 1, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 50, "file_size": 60730, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x33919c0a.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x33919c0a.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x33919c0a_sheet.webp"}, {"id": 66, "file_name": "skill_0x54f68216.spr", "rel_path": "unknown/skill_0x54f68216.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0x54f68216", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 100, "file_size": 143901, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x54f68216.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x54f68216.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x54f68216_sheet.webp"}, {"id": 67, "file_name": "skill_0x5cfdadff.spr", "rel_path": "unknown/skill_0x5cfdadff.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0x5cfdadff", "skill_id": "-", "width": 240, "height": 240, "max_dim": 240, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 1, "file_size": 17412, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x5cfdadff.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x5cfdadff.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x5cfdadff_sheet.webp"}, {"id": 68, "file_name": "skill_0x7a396e97.spr", "rel_path": "unknown/skill_0x7a396e97.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0x7a396e97", "skill_id": "-", "width": 80, "height": 60, "max_dim": 80, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 50, "file_size": 28978, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x7a396e97.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x7a396e97.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x7a396e97_sheet.webp"}, {"id": 69, "file_name": "skill_0x8af5141d.spr", "rel_path": "unknown/skill_0x8af5141d.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0x8af5141d", "skill_id": "-", "width": 120, "height": 120, "max_dim": 120, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 50, "file_size": 55774, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x8af5141d.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x8af5141d.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x8af5141d_sheet.webp"}, {"id": 70, "file_name": "skill_0x9fd0b340.spr", "rel_path": "unknown/skill_0x9fd0b340.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0x9fd0b340", "skill_id": "-", "width": 640, "height": 480, "max_dim": 640, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 200, "file_size": 36191, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x9fd0b340.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x9fd0b340.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0x9fd0b340_sheet.webp"}, {"id": 71, "file_name": "skill_0xa00161e9.spr", "rel_path": "unknown/skill_0xa00161e9.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0xa00161e9", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 7, "dirs": 1, "frames_per_dir": 7, "rendered_frames": 7, "cols": 7, "rows": 1, "interval": 150, "file_size": 36195, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xa00161e9.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xa00161e9.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xa00161e9_sheet.webp"}, {"id": 72, "file_name": "skill_0xa5ab9da9.spr", "rel_path": "unknown/skill_0xa5ab9da9.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0xa5ab9da9", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 7, "dirs": 1, "frames_per_dir": 7, "rendered_frames": 7, "cols": 7, "rows": 1, "interval": 150, "file_size": 43812, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xa5ab9da9.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xa5ab9da9.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xa5ab9da9_sheet.webp"}, {"id": 73, "file_name": "skill_0xb77a7cb9.spr", "rel_path": "unknown/skill_0xb77a7cb9.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0xb77a7cb9", "skill_id": "-", "width": 80, "height": 60, "max_dim": 80, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 50, "file_size": 27521, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xb77a7cb9.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xb77a7cb9.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xb77a7cb9_sheet.webp"}, {"id": 74, "file_name": "skill_0xbd4a8dfa.spr", "rel_path": "unknown/skill_0xbd4a8dfa.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0xbd4a8dfa", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 2, "file_size": 135993, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xbd4a8dfa.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xbd4a8dfa.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xbd4a8dfa_sheet.webp"}, {"id": 75, "file_name": "skill_0xd6694bba.spr", "rel_path": "unknown/skill_0xd6694bba.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0xd6694bba", "skill_id": "-", "width": 240, "height": 240, "max_dim": 240, "frames": 18, "dirs": 1, "frames_per_dir": 18, "rendered_frames": 18, "cols": 8, "rows": 3, "interval": 50, "file_size": 115632, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xd6694bba.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xd6694bba.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xd6694bba_sheet.webp"}, {"id": 76, "file_name": "skill_0xdb30c636.spr", "rel_path": "unknown/skill_0xdb30c636.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0xdb30c636", "skill_id": "-", "width": 240, "height": 240, "max_dim": 240, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 1, "file_size": 17412, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xdb30c636.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xdb30c636.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xdb30c636_sheet.webp"}, {"id": 77, "file_name": "skill_0xe7a024f8.spr", "rel_path": "unknown/skill_0xe7a024f8.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0xe7a024f8", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 71869, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xe7a024f8.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xe7a024f8.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xe7a024f8_sheet.webp"}, {"id": 78, "file_name": "skill_0xf1957f2c.spr", "rel_path": "unknown/skill_0xf1957f2c.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0xf1957f2c", "skill_id": "-", "width": 210, "height": 210, "max_dim": 210, "frames": 19, "dirs": 1, "frames_per_dir": 19, "rendered_frames": 19, "cols": 8, "rows": 3, "interval": 50, "file_size": 99238, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xf1957f2c.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xf1957f2c.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xf1957f2c_sheet.webp"}, {"id": 79, "file_name": "skill_0xfc3bbf56.spr", "rel_path": "unknown/skill_0xfc3bbf56.spr", "sect": "Kỹ Năng Chung", "sect_color": "#64748b", "skill_vi": "skill_0xfc3bbf56", "skill_id": "-", "width": 200, "height": 200, "max_dim": 200, "frames": 336, "dirs": 16, "frames_per_dir": 21, "rendered_frames": 21, "cols": 8, "rows": 3, "interval": 50, "file_size": 1019165, "webp_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xfc3bbf56.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xfc3bbf56.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/unknown_skill_0xfc3bbf56_sheet.webp"}, {"id": 80, "file_name": "天地无极.spr", "rel_path": "wd/天地无极.spr", "sect": "Võ Đang", "sect_color": "#3b82f6", "skill_vi": "Thiưn ?ĩa V? Cừc", "skill_id": "173", "width": 450, "height": 450, "max_dim": 450, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 50, "file_size": 686740, "webp_url": "Client_VLTK_SHXT/data/skills/preview/wd_天地无极.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/wd_天地无极.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/wd_天地无极_sheet.webp"}, {"id": 81, "file_name": "化险为夷.spr", "rel_path": "wu/化险为夷.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "化险为夷", "skill_id": "-", "width": 130, "height": 98, "max_dim": 130, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 23861, "webp_url": "Client_VLTK_SHXT/data/skills/preview/wu_化险为夷.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/wu_化险为夷.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/wu_化险为夷_sheet.webp"}, {"id": 82, "file_name": "玄冥吸星.spr", "rel_path": "wu/玄冥吸星.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "?ỗc Sa ch??ng", "skill_id": "30", "width": 250, "height": 250, "max_dim": 250, "frames": 128, "dirs": 16, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 50, "file_size": 450108, "webp_url": "Client_VLTK_SHXT/data/skills/preview/wu_玄冥吸星.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/wu_玄冥吸星.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/wu_玄冥吸星_sheet.webp"}, {"id": 83, "file_name": "阴风蚀骨.spr", "rel_path": "wu/阴风蚀骨.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "Đm Phong Thừc Cổt", "skill_id": "163", "width": 450, "height": 450, "max_dim": 450, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 50, "file_size": 586915, "webp_url": "Client_VLTK_SHXT/data/skills/preview/wu_阴风蚀骨.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/wu_阴风蚀骨.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/wu_阴风蚀骨_sheet.webp"}, {"id": 84, "file_name": "zq_sl_001.spr", "rel_path": "zhongqiu/zq_sl_001.spr", "sect": "Trung Thu", "sect_color": "#f59e0b", "skill_vi": "zq_sl_001", "skill_id": "-", "width": 40, "height": 40, "max_dim": 40, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 100, "file_size": 18695, "webp_url": "Client_VLTK_SHXT/data/skills/preview/zhongqiu_zq_sl_001.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/zhongqiu_zq_sl_001.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/zhongqiu_zq_sl_001_sheet.webp"}, {"id": 85, "file_name": "zq_sl_002.spr", "rel_path": "zhongqiu/zq_sl_002.spr", "sect": "Trung Thu", "sect_color": "#f59e0b", "skill_vi": "zq_sl_002", "skill_id": "-", "width": 45, "height": 45, "max_dim": 45, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 125, "file_size": 36164, "webp_url": "Client_VLTK_SHXT/data/skills/preview/zhongqiu_zq_sl_002.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/zhongqiu_zq_sl_002.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/zhongqiu_zq_sl_002_sheet.webp"}, {"id": 86, "file_name": "mag_bz_tu1_爆炸效果.spr", "rel_path": "丐帮/mag_bz_tu1_爆炸效果.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "?ấu Thạch Văn Lỗ", "skill_id": "44", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 100, "file_size": 109570, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_bz_tu1_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_bz_tu1_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_bz_tu1_爆炸效果_sheet.webp"}, {"id": 87, "file_name": "mag_bz_tu2_爆炸效果.spr", "rel_path": "丐帮/mag_bz_tu2_爆炸效果.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "Nam Minh Tam ?oạn Kích", "skill_id": "240", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 100, "file_size": 144612, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_bz_tu2_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_bz_tu2_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_bz_tu2_爆炸效果_sheet.webp"}, {"id": 88, "file_name": "mag_gb_01_投石问路.spr", "rel_path": "丐帮/mag_gb_01_投石问路.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "?ấu Thạch Văn Lỗ", "skill_id": "44", "width": 320, "height": 320, "max_dim": 320, "frames": 1, "dirs": 1, "frames_per_dir": 1, "rendered_frames": 1, "cols": 1, "rows": 1, "interval": 50, "file_size": 1080, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_01_投石问路.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_01_投石问路.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_01_投石问路_sheet.webp"}, {"id": 89, "file_name": "mag_gb_02_沿门托钵.spr", "rel_path": "丐帮/mag_gb_02_沿门托钵.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "Diưn M?n Thác Bát", "skill_id": "45", "width": 320, "height": 320, "max_dim": 320, "frames": 64, "dirs": 16, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 50, "file_size": 208799, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_02_沿门托钵.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_02_沿门托钵.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_02_沿门托钵_sheet.webp"}, {"id": 90, "file_name": "mag_gb_03_见人伸手.spr", "rel_path": "丐帮/mag_gb_03_见人伸手.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "Kiển Nhơn Thấn Thỡ", "skill_id": "46", "width": 200, "height": 200, "max_dim": 200, "frames": 64, "dirs": 16, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 50, "file_size": 205342, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_03_见人伸手.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_03_见人伸手.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_03_见人伸手_sheet.webp"}, {"id": 91, "file_name": "mag_gb_04_天下无狗.spr", "rel_path": "丐帮/mag_gb_04_天下无狗.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "Bống ?ã ác Cầu", "skill_id": "47", "width": 320, "height": 320, "max_dim": 320, "frames": 64, "dirs": 16, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 50, "file_size": 306741, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_04_天下无狗.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_04_天下无狗.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_04_天下无狗_sheet.webp"}, {"id": 92, "file_name": "mag_gb_05_亢龙有悔.spr", "rel_path": "丐帮/mag_gb_05_亢龙有悔.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "Kháng Long Hụu Hổi", "skill_id": "48", "width": 320, "height": 320, "max_dim": 320, "frames": 80, "dirs": 16, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 50, "file_size": 566722, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_05_亢龙有悔.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_05_亢龙有悔.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_05_亢龙有悔_sheet.webp"}, {"id": 93, "file_name": "mag_gb_06_孤木遁雷.spr", "rel_path": "丐帮/mag_gb_06_孤木遁雷.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "C? Mỗc ?ỗn L?i", "skill_id": "49", "width": 240, "height": 240, "max_dim": 240, "frames": 13, "dirs": 1, "frames_per_dir": 13, "rendered_frames": 13, "cols": 8, "rows": 2, "interval": 80, "file_size": 110835, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_06_孤木遁雷.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_06_孤木遁雷.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_06_孤木遁雷_sheet.webp"}, {"id": 94, "file_name": "mag_gb_07_金乌映雪.spr", "rel_path": "丐帮/mag_gb_07_金乌映雪.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "Kim ? ánh Tuyểt", "skill_id": "52", "width": 240, "height": 240, "max_dim": 240, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 50, "file_size": 233008, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_07_金乌映雪.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_07_金乌映雪.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_07_金乌映雪_sheet.webp"}, {"id": 95, "file_name": "mag_gb_08_奎木星照.spr", "rel_path": "丐帮/mag_gb_08_奎木星照.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "Khuư Mỗc Tinh Chiểu", "skill_id": "51", "width": 240, "height": 240, "max_dim": 240, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 116674, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_08_奎木星照.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_08_奎木星照.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_08_奎木星照_sheet.webp"}, {"id": 96, "file_name": "mag_gb_09_奔流到海.spr", "rel_path": "丐帮/mag_gb_09_奔流到海.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "B?n L?u ?áo Hãi", "skill_id": "50", "width": 240, "height": 240, "max_dim": 240, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 202595, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_09_奔流到海.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_09_奔流到海.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_09_奔流到海_sheet.webp"}, {"id": 97, "file_name": "mag_gb_10_化险为夷.spr", "rel_path": "丐帮/mag_gb_10_化险为夷.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "Hóa Hiềm Vi Di", "skill_id": "53", "width": 240, "height": 240, "max_dim": 240, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 80, "file_size": 161550, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_10_化险为夷.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_10_化险为夷.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_10_化险为夷_sheet.webp"}, {"id": 98, "file_name": "mag_gb_11_醉蝶狂舞.spr", "rel_path": "丐帮/mag_gb_11_醉蝶狂舞.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "mag_gb_11_醉蝶狂舞", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 60, "file_size": 42637, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_11_醉蝶狂舞.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_11_醉蝶狂舞.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_11_醉蝶狂舞_sheet.webp"}, {"id": 99, "file_name": "mag_gb_12_打狗阵.spr", "rel_path": "丐帮/mag_gb_12_打狗阵.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "mag_gb_12_打狗阵", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 120, "file_size": 39103, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_12_打狗阵.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_12_打狗阵.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_12_打狗阵_sheet.webp"}, {"id": 100, "file_name": "mag_gb_bz5_爆炸效果.spr", "rel_path": "丐帮/mag_gb_bz5_爆炸效果.spr", "sect": "Cái Bang", "sect_color": "#f97316", "skill_vi": "Kháng Long Hụu Hổi", "skill_id": "48", "width": 320, "height": 320, "max_dim": 320, "frames": 6, "dirs": 1, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 2, "file_size": 62187, "webp_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_bz5_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_bz5_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/丐帮_mag_gb_bz5_爆炸效果_sheet.webp"}, {"id": 101, "file_name": "bz_du1_爆炸.spr", "rel_path": "五毒教/bz_du1_爆炸.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "?ỗc Sa ch??ng", "skill_id": "30", "width": 100, "height": 100, "max_dim": 100, "frames": 13, "dirs": 1, "frames_per_dir": 13, "rendered_frames": 13, "cols": 8, "rows": 2, "interval": 1, "file_size": 35944, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_bz_du1_爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_bz_du1_爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_bz_du1_爆炸_sheet.webp"}, {"id": 102, "file_name": "bz_du2_爆炸.spr", "rel_path": "五毒教/bz_du2_爆炸.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "Kh? Lơu Tạc ?ạn", "skill_id": "32", "width": 120, "height": 120, "max_dim": 120, "frames": 6, "dirs": 1, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 50, "file_size": 23291, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_bz_du2_爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_bz_du2_爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_bz_du2_爆炸_sheet.webp"}, {"id": 103, "file_name": "wdu_01_毒砂掌.spr", "rel_path": "五毒教/wdu_01_毒砂掌.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "Thiưn Thở Vạn ?ỗc", "skill_id": "214", "width": 320, "height": 320, "max_dim": 320, "frames": 160, "dirs": 16, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 532532, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_01_毒砂掌.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_01_毒砂掌.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_01_毒砂掌_sheet.webp"}, {"id": 104, "file_name": "wdu_02_大手印.spr", "rel_path": "五毒教/wdu_02_大手印.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "Huyểt ?ao ?ỗc Sát", "skill_id": "31", "width": 160, "height": 160, "max_dim": 160, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 43946, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_02_大手印.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_02_大手印.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_02_大手印_sheet.webp"}, {"id": 105, "file_name": "wdu_03_骷髅炸弹.spr", "rel_path": "五毒教/wdu_03_骷髅炸弹.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "Kh? Lơu Tạc ?ạn", "skill_id": "32", "width": 240, "height": 240, "max_dim": 240, "frames": 80, "dirs": 16, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 50, "file_size": 466117, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_03_骷髅炸弹.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_03_骷髅炸弹.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_03_骷髅炸弹_sheet.webp"}, {"id": 106, "file_name": "wdu_04_九阴白骨抓.spr", "rel_path": "五毒教/wdu_04_九阴白骨抓.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "Cũu Đm Bạch Cổt Trão", "skill_id": "33", "width": 400, "height": 400, "max_dim": 400, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 50, "file_size": 133434, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_04_九阴白骨抓.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_04_九阴白骨抓.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_04_九阴白骨抓_sheet.webp"}, {"id": 107, "file_name": "wdu_04_九阴白骨抓消亡.spr", "rel_path": "五毒教/wdu_04_九阴白骨抓消亡.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "Cũu Đm Bạch Cổt Trão", "skill_id": "33", "width": 400, "height": 400, "max_dim": 400, "frames": 13, "dirs": 1, "frames_per_dir": 13, "rendered_frames": 13, "cols": 8, "rows": 2, "interval": 200, "file_size": 45056, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_04_九阴白骨抓消亡.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_04_九阴白骨抓消亡.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_04_九阴白骨抓消亡_sheet.webp"}, {"id": 108, "file_name": "wdu_05_蛤蟆功.spr", "rel_path": "五毒教/wdu_05_蛤蟆功.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "Cáp M? c?ng", "skill_id": "34", "width": 320, "height": 240, "max_dim": 320, "frames": 160, "dirs": 16, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 656048, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_05_蛤蟆功.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_05_蛤蟆功.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_05_蛤蟆功_sheet.webp"}, {"id": 109, "file_name": "wdu_06_无形蛊.spr", "rel_path": "五毒教/wdu_06_无形蛊.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "Vô Hình Cổ", "skill_id": "-", "width": 320, "height": 240, "max_dim": 320, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 30, "file_size": 167970, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_06_无形蛊.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_06_无形蛊.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_06_无形蛊_sheet.webp"}, {"id": 110, "file_name": "wdu_07_毒盾.spr", "rel_path": "五毒教/wdu_07_毒盾.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "Độc Thuẫn", "skill_id": "-", "width": 220, "height": 220, "max_dim": 220, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 30, "file_size": 39773, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_07_毒盾.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_07_毒盾.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_07_毒盾_sheet.webp"}, {"id": 111, "file_name": "wdu_08_冰蓝玄晶.spr", "rel_path": "五毒教/wdu_08_冰蓝玄晶.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "wdu_08_冰蓝玄晶", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 30, "file_size": 100472, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_08_冰蓝玄晶.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_08_冰蓝玄晶.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_08_冰蓝玄晶_sheet.webp"}, {"id": 112, "file_name": "wdu_09_雷动九天.spr", "rel_path": "五毒教/wdu_09_雷动九天.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "wdu_09_雷动九天", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 30, "file_size": 131324, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_09_雷动九天.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_09_雷动九天.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_09_雷动九天_sheet.webp"}, {"id": 113, "file_name": "wdu_10_赤焰蚀天.spr", "rel_path": "五毒教/wdu_10_赤焰蚀天.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "wdu_10_赤焰蚀天", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 30, "file_size": 116404, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_10_赤焰蚀天.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_10_赤焰蚀天.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_10_赤焰蚀天_sheet.webp"}, {"id": 114, "file_name": "wdu_11_万蛊蚀心.spr", "rel_path": "五毒教/wdu_11_万蛊蚀心.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "Vạn Cổ Thực Tâm", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 30, "file_size": 95766, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_11_万蛊蚀心.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_11_万蛊蚀心.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_11_万蛊蚀心_sheet.webp"}, {"id": 115, "file_name": "wdu_12_移花接玉.spr", "rel_path": "五毒教/wdu_12_移花接玉.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "wdu_12_移花接玉", "skill_id": "-", "width": 120, "height": 120, "max_dim": 120, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 30, "file_size": 27749, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_12_移花接玉.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_12_移花接玉.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_12_移花接玉_sheet.webp"}, {"id": 116, "file_name": "wdu_13_魔法施放.spr", "rel_path": "五毒教/wdu_13_魔法施放.spr", "sect": "Ngũ Độc", "sect_color": "#8b5cf6", "skill_vi": "wdu_13_魔法施放", "skill_id": "-", "width": 160, "height": 160, "max_dim": 160, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 50, "file_size": 85838, "webp_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_13_魔法施放.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_13_魔法施放.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/五毒教_wdu_13_魔法施放_sheet.webp"}, {"id": 117, "file_name": "bz_du3_爆炸.spr", "rel_path": "唐门/bz_du3_爆炸.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "?ỗc Thích Cổt", "skill_id": "128", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 1, "file_size": 284851, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_bz_du3_爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_bz_du3_爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_bz_du3_爆炸_sheet.webp"}, {"id": 118, "file_name": "tm_01_毒附加.spr", "rel_path": "唐门/tm_01_毒附加.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "tm_01_毒附加", "skill_id": "-", "width": 90, "height": 90, "max_dim": 90, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 30, "file_size": 53035, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_01_毒附加.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_01_毒附加.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_01_毒附加_sheet.webp"}, {"id": 119, "file_name": "tm_02_冰附加.spr", "rel_path": "唐门/tm_02_冰附加.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "tm_02_冰附加", "skill_id": "-", "width": 90, "height": 90, "max_dim": 90, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 30, "file_size": 55518, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_02_冰附加.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_02_冰附加.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_02_冰附加_sheet.webp"}, {"id": 120, "file_name": "tm_03_霹雳弹.spr", "rel_path": "唐门/tm_03_霹雳弹.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Tích Lĩch ??n", "skill_id": "35", "width": 100, "height": 100, "max_dim": 100, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 3024, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_03_霹雳弹.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_03_霹雳弹.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_03_霹雳弹_sheet.webp"}, {"id": 121, "file_name": "tm_04_夺魂箭.spr", "rel_path": "唐门/tm_04_夺魂箭.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Thiưn La ?ĩa VỏngPhi ?ao", "skill_id": "85", "width": 120, "height": 120, "max_dim": 120, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 50, "file_size": 16457, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_04_夺魂箭.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_04_夺魂箭.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_04_夺魂箭_sheet.webp"}, {"id": 122, "file_name": "tm_05_多向箭.spr", "rel_path": "唐门/tm_05_多向箭.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Truy Tơm Tiên", "skill_id": "37", "width": 270, "height": 270, "max_dim": 270, "frames": 160, "dirs": 16, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 40, "file_size": 730377, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_05_多向箭.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_05_多向箭.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_05_多向箭_sheet.webp"}, {"id": 123, "file_name": "tm_06_漫天花雨.spr", "rel_path": "唐门/tm_06_漫天花雨.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Mạn Thiưn Hoa Vợ", "skill_id": "38", "width": 450, "height": 450, "max_dim": 450, "frames": 34, "dirs": 1, "frames_per_dir": 34, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 30, "file_size": 700249, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_06_漫天花雨.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_06_漫天花雨.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_06_漫天花雨_sheet.webp"}, {"id": 124, "file_name": "tm_07_小李飞刀.spr", "rel_path": "唐门/tm_07_小李飞刀.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Bạo Vợ Lư Hoa", "skill_id": "96", "width": 140, "height": 140, "max_dim": 140, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 50, "file_size": 52643, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_07_小李飞刀.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_07_小李飞刀.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_07_小李飞刀_sheet.webp"}, {"id": 125, "file_name": "tm_08_陷井.spr", "rel_path": "唐门/tm_08_陷井.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "?ỗc Thích Cổt", "skill_id": "127", "width": 320, "height": 240, "max_dim": 320, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 50, "file_size": 87343, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_08_陷井.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_08_陷井.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_08_陷井_sheet.webp"}, {"id": 126, "file_name": "tm_09_夹子.spr", "rel_path": "唐门/tm_09_夹子.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Giáp Tũ", "skill_id": "39", "width": 100, "height": 100, "max_dim": 100, "frames": 28, "dirs": 4, "frames_per_dir": 7, "rendered_frames": 7, "cols": 7, "rows": 1, "interval": 50, "file_size": 62334, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_09_夹子.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_09_夹子.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_09_夹子_sheet.webp"}, {"id": 127, "file_name": "tm_10_火地雷.spr", "rel_path": "唐门/tm_10_火地雷.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Hòa ?ĩa L?i", "skill_id": "40", "width": 320, "height": 320, "max_dim": 320, "frames": 160, "dirs": 16, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 767701, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_10_火地雷.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_10_火地雷.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_10_火地雷_sheet.webp"}, {"id": 128, "file_name": "tm_11_电地雷.spr", "rel_path": "唐门/tm_11_电地雷.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "?iễn ?ĩa L?i", "skill_id": "41", "width": 320, "height": 240, "max_dim": 320, "frames": 160, "dirs": 16, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 730314, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_11_电地雷.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_11_电地雷.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_11_电地雷_sheet.webp"}, {"id": 129, "file_name": "tm_12_冰地雷.spr", "rel_path": "唐门/tm_12_冰地雷.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Bông ?ĩa L?i", "skill_id": "42", "width": 320, "height": 320, "max_dim": 320, "frames": 96, "dirs": 16, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 50, "file_size": 759944, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_12_冰地雷.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_12_冰地雷.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_12_冰地雷_sheet.webp"}, {"id": 130, "file_name": "tm_13_毒地雷.spr", "rel_path": "唐门/tm_13_毒地雷.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "?ỗc ?ĩa L?i", "skill_id": "43", "width": 320, "height": 320, "max_dim": 320, "frames": 160, "dirs": 16, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 665397, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_13_毒地雷.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_13_毒地雷.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_13_毒地雷_sheet.webp"}, {"id": 131, "file_name": "tm_驭飞刀.spr", "rel_path": "唐门/tm_驭飞刀.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "Thiưn La ?ĩa Vỏng", "skill_id": "36", "width": 180, "height": 180, "max_dim": 180, "frames": 128, "dirs": 16, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 50, "file_size": 135703, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_驭飞刀.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_驭飞刀.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_tm_驭飞刀_sheet.webp"}, {"id": 132, "file_name": "小李飞刀.spr", "rel_path": "唐门/小李飞刀.spr", "sect": "Đường Môn", "sect_color": "#10b981", "skill_vi": "C? Yưn Trủc Vơn", "skill_id": "216", "width": 320, "height": 320, "max_dim": 320, "frames": 64, "dirs": 16, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 100, "file_size": 779715, "webp_url": "Client_VLTK_SHXT/data/skills/preview/唐门_小李飞刀.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/唐门_小李飞刀.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/唐门_小李飞刀_sheet.webp"}, {"id": 133, "file_name": "mag_bz_huo1_爆炸效果.spr", "rel_path": "天忍/mag_bz_huo1_爆炸效果.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Tích Lĩch ??n", "skill_id": "35", "width": 320, "height": 320, "max_dim": 320, "frames": 6, "dirs": 1, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 100, "file_size": 37874, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_bz_huo1_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_bz_huo1_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_bz_huo1_爆炸效果_sheet.webp"}, {"id": 134, "file_name": "mag_bz_huo3_爆炸效果.spr", "rel_path": "天忍/mag_bz_huo3_爆炸效果.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Bống ?ã ác Cầu", "skill_id": "47", "width": 320, "height": 320, "max_dim": 320, "frames": 6, "dirs": 1, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 100, "file_size": 75205, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_bz_huo3_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_bz_huo3_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_bz_huo3_爆炸效果_sheet.webp"}, {"id": 135, "file_name": "mag_bz_huo4_爆炸效果.spr", "rel_path": "天忍/mag_bz_huo4_爆炸效果.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Thăt Th??ng Thấn Quyến", "skill_id": "82", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 100, "file_size": 265709, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_bz_huo4_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_bz_huo4_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_bz_huo4_爆炸效果_sheet.webp"}, {"id": 136, "file_name": "mag_tr_01_残阳如雪.spr", "rel_path": "天忍/mag_tr_01_残阳如雪.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Tàn D??ng Nh? Huyểt", "skill_id": "54", "width": 320, "height": 320, "max_dim": 320, "frames": 48, "dirs": 16, "frames_per_dir": 3, "rendered_frames": 3, "cols": 3, "rows": 1, "interval": 50, "file_size": 354074, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_01_残阳如雪.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_01_残阳如雪.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_01_残阳如雪_sheet.webp"}, {"id": 137, "file_name": "mag_tr_02_推山填海_a1.spr", "rel_path": "天忍/mag_tr_02_推山填海_a1.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Th?i s?n  ?iến Hãi", "skill_id": "55", "width": 320, "height": 320, "max_dim": 320, "frames": 31, "dirs": 1, "frames_per_dir": 31, "rendered_frames": 31, "cols": 8, "rows": 4, "interval": 20, "file_size": 642935, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_02_推山填海_a1.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_02_推山填海_a1.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_02_推山填海_a1_sheet.webp"}, {"id": 138, "file_name": "mag_tr_02_推山填海_a2.spr", "rel_path": "天忍/mag_tr_02_推山填海_a2.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Th?i s?n  ?iến Hãi", "skill_id": "55", "width": 320, "height": 320, "max_dim": 320, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 20, "file_size": 145639, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_02_推山填海_a2.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_02_推山填海_a2.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_02_推山填海_a2_sheet.webp"}, {"id": 139, "file_name": "mag_tr_02_推山填海_b1.spr", "rel_path": "天忍/mag_tr_02_推山填海_b1.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Th?i s?n  ?iến Hãi", "skill_id": "55", "width": 320, "height": 320, "max_dim": 320, "frames": 31, "dirs": 1, "frames_per_dir": 31, "rendered_frames": 31, "cols": 8, "rows": 4, "interval": 20, "file_size": 642935, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_02_推山填海_b1.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_02_推山填海_b1.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_02_推山填海_b1_sheet.webp"}, {"id": 140, "file_name": "mag_tr_02_推山填海_b2.spr", "rel_path": "天忍/mag_tr_02_推山填海_b2.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Th?i s?n  ?iến Hãi", "skill_id": "55", "width": 320, "height": 320, "max_dim": 320, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 20, "file_size": 145639, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_02_推山填海_b2.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_02_推山填海_b2.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_02_推山填海_b2_sheet.webp"}, {"id": 141, "file_name": "mag_tr_04_弹指烈焰.spr", "rel_path": "天忍/mag_tr_04_弹指烈焰.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "??n Chì Liễt Diễm", "skill_id": "57", "width": 320, "height": 320, "max_dim": 320, "frames": 48, "dirs": 16, "frames_per_dir": 3, "rendered_frames": 3, "cols": 3, "rows": 1, "interval": 50, "file_size": 631040, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_04_弹指烈焰.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_04_弹指烈焰.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_04_弹指烈焰_sheet.webp"}, {"id": 142, "file_name": "mag_tr_06_火盾.spr", "rel_path": "天忍/mag_tr_06_火盾.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "mag_tr_06_火盾", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 60, "file_size": 15815, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_06_火盾.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_06_火盾.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_06_火盾_sheet.webp"}, {"id": 143, "file_name": "mag_tr_07_偷天换日.spr", "rel_path": "天忍/mag_tr_07_偷天换日.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Thơu Thiưn Hoán Nhât", "skill_id": "69", "width": 320, "height": 320, "max_dim": 320, "frames": 5, "dirs": 1, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 30, "file_size": 13933, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_07_偷天换日.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_07_偷天换日.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_07_偷天换日_sheet.webp"}, {"id": 144, "file_name": "mag_tr_08_吸星大法.spr", "rel_path": "天忍/mag_tr_08_吸星大法.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Hăp Tinh ?ại Pháp", "skill_id": "71", "width": 320, "height": 320, "max_dim": 320, "frames": 5, "dirs": 1, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 30, "file_size": 15753, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_08_吸星大法.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_08_吸星大法.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_08_吸星大法_sheet.webp"}, {"id": 145, "file_name": "mag_tr_09_借力打力.spr", "rel_path": "天忍/mag_tr_09_借力打力.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Tá Lừc ?ã Lừc", "skill_id": "70", "width": 320, "height": 320, "max_dim": 320, "frames": 5, "dirs": 1, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 30, "file_size": 12715, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_09_借力打力.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_09_借力打力.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_09_借力打力_sheet.webp"}, {"id": 146, "file_name": "mag_tr_10_蚀骨血仞.spr", "rel_path": "天忍/mag_tr_10_蚀骨血仞.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "mag_tr_10_蚀骨血仞", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 100, "file_size": 48506, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_10_蚀骨血仞.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_10_蚀骨血仞.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_10_蚀骨血仞_sheet.webp"}, {"id": 147, "file_name": "mag_tr_11_幻影飞狐.spr", "rel_path": "天忍/mag_tr_11_幻影飞狐.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "mag_tr_11_幻影飞狐", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 40, "file_size": 25871, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_11_幻影飞狐.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_11_幻影飞狐.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_11_幻影飞狐_sheet.webp"}, {"id": 148, "file_name": "mag_tr_12_飞鸿无迹.spr", "rel_path": "天忍/mag_tr_12_飞鸿无迹.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "mag_tr_12_飞鸿无迹", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 40, "file_size": 40235, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_12_飞鸿无迹.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_12_飞鸿无迹.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_12_飞鸿无迹_sheet.webp"}, {"id": 149, "file_name": "mag_tr_13_厉魔夺魂.spr", "rel_path": "天忍/mag_tr_13_厉魔夺魂.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "mag_tr_13_厉魔夺魂", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 40, "file_size": 42467, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_13_厉魔夺魂.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_13_厉魔夺魂.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_13_厉魔夺魂_sheet.webp"}, {"id": 150, "file_name": "mag_tr_14_五行阵.spr", "rel_path": "天忍/mag_tr_14_五行阵.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "mag_tr_14_五行阵", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 60, "file_size": 78121, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_14_五行阵.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_14_五行阵.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_14_五行阵_sheet.webp"}, {"id": 151, "file_name": "mag_tr_15_天魔解体.spr", "rel_path": "天忍/mag_tr_15_天魔解体.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "mag_tr_15_天魔解体", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 52698, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_15_天魔解体.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_15_天魔解体.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_15_天魔解体_sheet.webp"}, {"id": 152, "file_name": "mag_tr_16_施魔法.spr", "rel_path": "天忍/mag_tr_16_施魔法.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Thi pháp / Vận công", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 5, "dirs": 1, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 50, "file_size": 25855, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_16_施魔法.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_16_施魔法.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_16_施魔法_sheet.webp"}, {"id": 153, "file_name": "mag_tr_bz1_爆炸效果.spr", "rel_path": "天忍/mag_tr_bz1_爆炸效果.spr", "sect": "Thiên Nhẫn", "sect_color": "#ef4444", "skill_vi": "Diưn M?n Thác Bát", "skill_id": "45", "width": 320, "height": 320, "max_dim": 320, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 2, "file_size": 62922, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_bz1_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_bz1_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天忍_mag_tr_bz1_爆炸效果_sheet.webp"}, {"id": 154, "file_name": "tw_01_火眼金睛.spr", "rel_path": "天王/tw_01_火眼金睛.spr", "sect": "Thiên Vương", "sect_color": "#eab308", "skill_vi": "tw_01_火眼金睛", "skill_id": "-", "width": 60, "height": 60, "max_dim": 60, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 80, "file_size": 18672, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天王_tw_01_火眼金睛.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天王_tw_01_火眼金睛.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天王_tw_01_火眼金睛_sheet.webp"}, {"id": 155, "file_name": "tw_02_天王战意.spr", "rel_path": "天王/tw_02_天王战意.spr", "sect": "Thiên Vương", "sect_color": "#eab308", "skill_vi": "tw_02_天王战意", "skill_id": "-", "width": 320, "height": 240, "max_dim": 320, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 100, "file_size": 102589, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天王_tw_02_天王战意.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天王_tw_02_天王战意.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天王_tw_02_天王战意_sheet.webp"}, {"id": 156, "file_name": "tw_03_沾衣十八跌.spr", "rel_path": "天王/tw_03_沾衣十八跌.spr", "sect": "Thiên Vương", "sect_color": "#eab308", "skill_vi": "tw_03_沾衣十八跌", "skill_id": "-", "width": 120, "height": 120, "max_dim": 120, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 40, "file_size": 18344, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天王_tw_03_沾衣十八跌.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天王_tw_03_沾衣十八跌.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天王_tw_03_沾衣十八跌_sheet.webp"}, {"id": 157, "file_name": "tw_04_金钟罩.spr", "rel_path": "天王/tw_04_金钟罩.spr", "sect": "Thiên Vương", "sect_color": "#eab308", "skill_vi": "tw_04_金钟罩", "skill_id": "-", "width": 120, "height": 120, "max_dim": 120, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 50, "file_size": 34977, "webp_url": "Client_VLTK_SHXT/data/skills/preview/天王_tw_04_金钟罩.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/天王_tw_04_金钟罩.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/天王_tw_04_金钟罩_sheet.webp"}, {"id": 158, "file_name": "bz_bo1_金波.spr", "rel_path": "少林/bz_bo1_金波.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "Kim Ba", "skill_id": "59", "width": 240, "height": 240, "max_dim": 240, "frames": 320, "dirs": 32, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 411692, "webp_url": "Client_VLTK_SHXT/data/skills/preview/少林_bz_bo1_金波.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/少林_bz_bo1_金波.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/少林_bz_bo1_金波_sheet.webp"}, {"id": 159, "file_name": "bz_bo2_红波.spr", "rel_path": "少林/bz_bo2_红波.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "Họng Ba", "skill_id": "60", "width": 240, "height": 240, "max_dim": 240, "frames": 320, "dirs": 32, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 337104, "webp_url": "Client_VLTK_SHXT/data/skills/preview/少林_bz_bo2_红波.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/少林_bz_bo2_红波.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/少林_bz_bo2_红波_sheet.webp"}, {"id": 160, "file_name": "sl_01_摩诃无量.spr", "rel_path": "少林/sl_01_摩诃无量.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "Ma Ha V? L?ờng", "skill_id": "61", "width": 320, "height": 320, "max_dim": 320, "frames": 80, "dirs": 16, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 50, "file_size": 774037, "webp_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_01_摩诃无量.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_01_摩诃无量.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_01_摩诃无量_sheet.webp"}, {"id": 161, "file_name": "sl_01_达摩渡江.spr", "rel_path": "少林/sl_01_达摩渡江.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "Kim Phât Xuăt Kích", "skill_id": "134", "width": 300, "height": 300, "max_dim": 300, "frames": 160, "dirs": 16, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 1, "file_size": 1094143, "webp_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_01_达摩渡江.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_01_达摩渡江.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_01_达摩渡江_sheet.webp"}, {"id": 162, "file_name": "sl_02_清心梵音.spr", "rel_path": "少林/sl_02_清心梵音.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "sl_02_清心梵音", "skill_id": "-", "width": 240, "height": 240, "max_dim": 240, "frames": 9, "dirs": 1, "frames_per_dir": 9, "rendered_frames": 9, "cols": 8, "rows": 2, "interval": 50, "file_size": 80106, "webp_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_02_清心梵音.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_02_清心梵音.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_02_清心梵音_sheet.webp"}, {"id": 163, "file_name": "sl_03_行龙不雨.spr", "rel_path": "少林/sl_03_行龙不雨.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "Hàng Long Băt Vợ", "skill_id": "66", "width": 320, "height": 320, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 334810, "webp_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_03_行龙不雨.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_03_行龙不雨.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_03_行龙不雨_sheet.webp"}, {"id": 164, "file_name": "sl_04_慧眼咒.spr", "rel_path": "少林/sl_04_慧眼咒.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "V? T?ớng Trãm", "skill_id": "136", "width": 150, "height": 150, "max_dim": 150, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 30, "file_size": 152914, "webp_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_04_慧眼咒.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_04_慧眼咒.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_04_慧眼咒_sheet.webp"}, {"id": 165, "file_name": "sl_05_不动明王咒.spr", "rel_path": "少林/sl_05_不动明王咒.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "sl_05_不动明王咒", "skill_id": "-", "width": 150, "height": 150, "max_dim": 150, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 40, "file_size": 135674, "webp_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_05_不动明王咒.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_05_不动明王咒.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_05_不动明王咒_sheet.webp"}, {"id": 166, "file_name": "sl_06_狮子吼.spr", "rel_path": "少林/sl_06_狮子吼.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "sl_06_狮子吼", "skill_id": "-", "width": 240, "height": 240, "max_dim": 240, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 97479, "webp_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_06_狮子吼.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_06_狮子吼.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_06_狮子吼_sheet.webp"}, {"id": 167, "file_name": "sl_07_罗汉阵.spr", "rel_path": "少林/sl_07_罗汉阵.spr", "sect": "Thiếu Lâm", "sect_color": "#f59e0b", "skill_vi": "La Hán Trận", "skill_id": "-", "width": 140, "height": 140, "max_dim": 140, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 40, "file_size": 57502, "webp_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_07_罗汉阵.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_07_罗汉阵.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/少林_sl_07_罗汉阵_sheet.webp"}, {"id": 168, "file_name": "mag_bz_bin1_爆炸效果.spr", "rel_path": "峨嵋/mag_bz_bin1_爆炸效果.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Nhăt Diễp Tri Thu", "skill_id": "2", "width": 320, "height": 320, "max_dim": 320, "frames": 7, "dirs": 1, "frames_per_dir": 7, "rendered_frames": 7, "cols": 7, "rows": 1, "interval": 90, "file_size": 40871, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin1_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin1_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin1_爆炸效果_sheet.webp"}, {"id": 169, "file_name": "mag_bz_bin2_爆炸效果.spr", "rel_path": "峨嵋/mag_bz_bin2_爆炸效果.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Tứ T?ờng ?ọng Quy", "skill_id": "1", "width": 220, "height": 220, "max_dim": 220, "frames": 6, "dirs": 1, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 100, "file_size": 26816, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin2_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin2_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin2_爆炸效果_sheet.webp"}, {"id": 170, "file_name": "mag_bz_bin3_爆炸效果.spr", "rel_path": "峨嵋/mag_bz_bin3_爆炸效果.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Vợ ?ã Lư Hoa", "skill_id": "8", "width": 320, "height": 320, "max_dim": 320, "frames": 19, "dirs": 1, "frames_per_dir": 19, "rendered_frames": 19, "cols": 8, "rows": 3, "interval": 80, "file_size": 142846, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin3_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin3_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin3_爆炸效果_sheet.webp"}, {"id": 171, "file_name": "mag_bz_bin4_爆炸效果.spr", "rel_path": "峨嵋/mag_bz_bin4_爆炸效果.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Vợ ?ã Lư Hoa", "skill_id": "8", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 100, "file_size": 240762, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin4_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin4_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin4_爆炸效果_sheet.webp"}, {"id": 172, "file_name": "mag_bz_bin5_爆炸效果.spr", "rel_path": "峨嵋/mag_bz_bin5_爆炸效果.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Tú Hàng Phố D", "skill_id": "5", "width": 320, "height": 320, "max_dim": 320, "frames": 18, "dirs": 1, "frames_per_dir": 18, "rendered_frames": 18, "cols": 8, "rows": 3, "interval": 100, "file_size": 129790, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin5_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin5_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_bz_bin5_爆炸效果_sheet.webp"}, {"id": 173, "file_name": "mag_em_01_飘雪穿云.spr", "rel_path": "峨嵋/mag_em_01_飘雪穿云.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Phiưu Tuyểt Xuyưn Vơn", "skill_id": "68", "width": 320, "height": 320, "max_dim": 320, "frames": 64, "dirs": 16, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 50, "file_size": 470482, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_01_飘雪穿云.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_01_飘雪穿云.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_01_飘雪穿云_sheet.webp"}, {"id": 174, "file_name": "mag_em_02_四象同归.spr", "rel_path": "峨嵋/mag_em_02_四象同归.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Tứ T?ờng ?ọng Quy", "skill_id": "1", "width": 320, "height": 320, "max_dim": 320, "frames": 64, "dirs": 16, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 50, "file_size": 523979, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_02_四象同归.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_02_四象同归.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_02_四象同归_sheet.webp"}, {"id": 175, "file_name": "mag_em_03_一叶知秋.spr", "rel_path": "峨嵋/mag_em_03_一叶知秋.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Nhăt Diễp Tri Thu", "skill_id": "2", "width": 320, "height": 320, "max_dim": 320, "frames": 64, "dirs": 16, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 50, "file_size": 483195, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_03_一叶知秋.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_03_一叶知秋.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_03_一叶知秋_sheet.webp"}, {"id": 176, "file_name": "mag_em_04_不灭不绝.spr", "rel_path": "峨嵋/mag_em_04_不灭不绝.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Băt Diễt Băt Tuyễt", "skill_id": "3", "width": 320, "height": 320, "max_dim": 320, "frames": 64, "dirs": 16, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 50, "file_size": 646792, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_04_不灭不绝.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_04_不灭不绝.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_04_不灭不绝_sheet.webp"}, {"id": 177, "file_name": "mag_em_05_佛光普照.spr", "rel_path": "峨嵋/mag_em_05_佛光普照.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Phât Quang Phố Chiểu", "skill_id": "4", "width": 400, "height": 400, "max_dim": 400, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 100, "file_size": 338468, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_05_佛光普照.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_05_佛光普照.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_05_佛光普照_sheet.webp"}, {"id": 178, "file_name": "mag_em_06_秋风叶.spr", "rel_path": "峨嵋/mag_em_06_秋风叶.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Thu Phong Diệp", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 50, "file_size": 88877, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_06_秋风叶.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_06_秋风叶.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_06_秋风叶_sheet.webp"}, {"id": 179, "file_name": "mag_em_07_醉仙望月.spr", "rel_path": "峨嵋/mag_em_07_醉仙望月.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Túy Tiên Vọng Nguyệt", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 50, "file_size": 84031, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_07_醉仙望月.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_07_醉仙望月.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_07_醉仙望月_sheet.webp"}, {"id": 180, "file_name": "mag_em_08_流水.spr", "rel_path": "峨嵋/mag_em_08_流水.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Lưu Thủy", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 50, "file_size": 81922, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_08_流水.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_08_流水.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_08_流水_sheet.webp"}, {"id": 181, "file_name": "mag_em_09_梦蝶.spr", "rel_path": "峨嵋/mag_em_09_梦蝶.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Mộng Điệp", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 50, "file_size": 82579, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_09_梦蝶.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_09_梦蝶.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_09_梦蝶_sheet.webp"}, {"id": 182, "file_name": "mag_em_10_佛心慈佑.spr", "rel_path": "峨嵋/mag_em_10_佛心慈佑.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Phật Tâm Từ Hữu", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 71869, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_10_佛心慈佑.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_10_佛心慈佑.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_10_佛心慈佑_sheet.webp"}, {"id": 183, "file_name": "mag_em_11_风雨飘香.spr", "rel_path": "峨嵋/mag_em_11_风雨飘香.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Phong Vũ Phiêu Hương", "skill_id": "-", "width": 250, "height": 250, "max_dim": 250, "frames": 4, "dirs": 1, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 80, "file_size": 10951, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_11_风雨飘香.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_11_风雨飘香.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_11_风雨飘香_sheet.webp"}, {"id": 184, "file_name": "mag_em_12_慈航普渡.spr", "rel_path": "峨嵋/mag_em_12_慈航普渡.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Tú Hàng Phố D", "skill_id": "5", "width": 320, "height": 320, "max_dim": 320, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 40, "file_size": 619737, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_12_慈航普渡.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_12_慈航普渡.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_12_慈航普渡_sheet.webp"}, {"id": 185, "file_name": "mag_em_13_施魔法.spr", "rel_path": "峨嵋/mag_em_13_施魔法.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Thi pháp / Vận công", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 5, "dirs": 1, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 60, "file_size": 29016, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_13_施魔法.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_13_施魔法.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_13_施魔法_sheet.webp"}, {"id": 186, "file_name": "mag_em_bin4_爆炸效果.spr", "rel_path": "峨嵋/mag_em_bin4_爆炸效果.spr", "sect": "Nga Mi", "sect_color": "#ec4899", "skill_vi": "Băt Diễt Băt Tuyễt", "skill_id": "3", "width": 320, "height": 320, "max_dim": 320, "frames": 6, "dirs": 1, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 50, "file_size": 47058, "webp_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_bin4_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_bin4_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/峨嵋_mag_em_bin4_爆炸效果_sheet.webp"}, {"id": 187, "file_name": "bz_dian3_爆炸.spr", "rel_path": "昆仑/bz_dian3_爆炸.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Tât Phong Chù", "skill_id": "14", "width": 320, "height": 320, "max_dim": 320, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 40, "file_size": 53335, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_bz_dian3_爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_bz_dian3_爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_bz_dian3_爆炸_sheet.webp"}, {"id": 188, "file_name": "bz_dian4_爆炸.spr", "rel_path": "昆仑/bz_dian4_爆炸.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Triến Từ Quyểt", "skill_id": "180", "width": 160, "height": 160, "max_dim": 160, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 1, "file_size": 120404, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_bz_dian4_爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_bz_dian4_爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_bz_dian4_爆炸_sheet.webp"}, {"id": 189, "file_name": "kl_01_呼风法.spr", "rel_path": "昆仑/kl_01_呼风法.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Tât Phong Chù", "skill_id": "14", "width": 160, "height": 160, "max_dim": 160, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 125397, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_01_呼风法.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_01_呼风法.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_01_呼风法_sheet.webp"}, {"id": 190, "file_name": "kl_02_疾电法a.spr", "rel_path": "昆仑/kl_02_疾电法a.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Vơn Long Kích", "skill_id": "169", "width": 320, "height": 320, "max_dim": 320, "frames": 160, "dirs": 16, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 589080, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_02_疾电法a.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_02_疾电法a.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_02_疾电法a_sheet.webp"}, {"id": 191, "file_name": "kl_02_疾电法b.spr", "rel_path": "昆仑/kl_02_疾电法b.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Tăn L?i Chù", "skill_id": "15", "width": 320, "height": 320, "max_dim": 320, "frames": 160, "dirs": 16, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 604006, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_02_疾电法b.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_02_疾电法b.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_02_疾电法b_sheet.webp"}, {"id": 192, "file_name": "kl_03_狂风骤电.spr", "rel_path": "昆仑/kl_03_狂风骤电.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Cuọng Phong Sâu ?iễn", "skill_id": "16", "width": 320, "height": 320, "max_dim": 320, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 50, "file_size": 400559, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_03_狂风骤电.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_03_狂风骤电.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_03_狂风骤电_sheet.webp"}, {"id": 193, "file_name": "kl_04_狂雷震地.spr", "rel_path": "昆仑/kl_04_狂雷震地.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Cuọng L?i Chăn ?ĩa", "skill_id": "17", "width": 450, "height": 450, "max_dim": 450, "frames": 5, "dirs": 1, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 80, "file_size": 115452, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_04_狂雷震地.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_04_狂雷震地.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_04_狂雷震地_sheet.webp"}, {"id": 194, "file_name": "kl_05_五雷正法.spr", "rel_path": "昆仑/kl_05_五雷正法.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Ngợ L?i Chánh Pháp", "skill_id": "18", "width": 450, "height": 450, "max_dim": 450, "frames": 5, "dirs": 1, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 80, "file_size": 105943, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_05_五雷正法.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_05_五雷正法.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_05_五雷正法_sheet.webp"}, {"id": 195, "file_name": "kl_06_大浪蚀空.spr", "rel_path": "昆仑/kl_06_大浪蚀空.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "kl_06_大浪蚀空", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 30, "file_size": 87583, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_06_大浪蚀空.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_06_大浪蚀空.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_06_大浪蚀空_sheet.webp"}, {"id": 196, "file_name": "kl_07_引雷遁地.spr", "rel_path": "昆仑/kl_07_引雷遁地.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "kl_07_引雷遁地", "skill_id": "-", "width": 220, "height": 220, "max_dim": 220, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 30, "file_size": 19000, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_07_引雷遁地.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_07_引雷遁地.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_07_引雷遁地_sheet.webp"}, {"id": 197, "file_name": "kl_08_烈火红尘.spr", "rel_path": "昆仑/kl_08_烈火红尘.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "kl_08_烈火红尘", "skill_id": "-", "width": 220, "height": 220, "max_dim": 220, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 30, "file_size": 72387, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_08_烈火红尘.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_08_烈火红尘.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_08_烈火红尘_sheet.webp"}, {"id": 198, "file_name": "kl_09_木珠兵解.spr", "rel_path": "昆仑/kl_09_木珠兵解.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "kl_09_木珠兵解", "skill_id": "-", "width": 140, "height": 140, "max_dim": 140, "frames": 40, "dirs": 1, "frames_per_dir": 40, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 20, "file_size": 62949, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_09_木珠兵解.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_09_木珠兵解.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_09_木珠兵解_sheet.webp"}, {"id": 199, "file_name": "kl_10_滑不留手.spr", "rel_path": "昆仑/kl_10_滑不留手.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "kl_10_滑不留手", "skill_id": "-", "width": 240, "height": 240, "max_dim": 240, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 40, "file_size": 49233, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_10_滑不留手.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_10_滑不留手.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_10_滑不留手_sheet.webp"}, {"id": 200, "file_name": "kl_11_清风符.spr", "rel_path": "昆仑/kl_11_清风符.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Thanh Phong phở", "skill_id": "19", "width": 100, "height": 100, "max_dim": 100, "frames": 40, "dirs": 1, "frames_per_dir": 40, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 40, "file_size": 154543, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_11_清风符.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_11_清风符.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_11_清风符_sheet.webp"}, {"id": 201, "file_name": "kl_13_大力金刚符.spr", "rel_path": "昆仑/kl_13_大力金刚符.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Nhăt Khí Tam Thanh Phở", "skill_id": "21", "width": 160, "height": 160, "max_dim": 160, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 40, "file_size": 59877, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_13_大力金刚符.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_13_大力金刚符.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_13_大力金刚符_sheet.webp"}, {"id": 202, "file_name": "kl_14_弃心符.spr", "rel_path": "昆仑/kl_14_弃心符.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Khí Tơm phở", "skill_id": "22", "width": 120, "height": 120, "max_dim": 120, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 40, "file_size": 137409, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_14_弃心符.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_14_弃心符.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_14_弃心符_sheet.webp"}, {"id": 203, "file_name": "kl_15_岁月无情符.spr", "rel_path": "昆仑/kl_15_岁月无情符.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "Tuể Nguyễt V? Tệnh phở", "skill_id": "23", "width": 160, "height": 160, "max_dim": 160, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 40, "file_size": 125442, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_15_岁月无情符.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_15_岁月无情符.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_15_岁月无情符_sheet.webp"}, {"id": 204, "file_name": "kl_16_魔法施放.spr", "rel_path": "昆仑/kl_16_魔法施放.spr", "sect": "Côn Lôn", "sect_color": "#6366f1", "skill_vi": "kl_16_魔法施放", "skill_id": "-", "width": 260, "height": 260, "max_dim": 260, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 116645, "webp_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_16_魔法施放.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_16_魔法施放.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/昆仑_kl_16_魔法施放_sheet.webp"}, {"id": 205, "file_name": "bz_dian1_爆炸.spr", "rel_path": "武当/bz_dian1_爆炸.spr", "sect": "Võ Đang", "sect_color": "#3b82f6", "skill_vi": "Nỗ L?i Chì", "skill_id": "24", "width": 320, "height": 320, "max_dim": 320, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 1, "file_size": 53335, "webp_url": "Client_VLTK_SHXT/data/skills/preview/武当_bz_dian1_爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/武当_bz_dian1_爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/武当_bz_dian1_爆炸_sheet.webp"}, {"id": 206, "file_name": "wd_01_怒雷指.spr", "rel_path": "武当/wd_01_怒雷指.spr", "sect": "Võ Đang", "sect_color": "#3b82f6", "skill_vi": "Nỗ L?i Chì", "skill_id": "24", "width": 320, "height": 240, "max_dim": 320, "frames": 160, "dirs": 16, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 1, "file_size": 670799, "webp_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_01_怒雷指.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_01_怒雷指.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_01_怒雷指_sheet.webp"}, {"id": 207, "file_name": "wd_02_沧海明月.spr", "rel_path": "武当/wd_02_沧海明月.spr", "sect": "Võ Đang", "sect_color": "#3b82f6", "skill_vi": "Th??ng Hãi Minh Nguyễt", "skill_id": "25", "width": 120, "height": 120, "max_dim": 120, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 1, "file_size": 18406, "webp_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_02_沧海明月.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_02_沧海明月.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_02_沧海明月_sheet.webp"}, {"id": 208, "file_name": "wd_03_天际惊雷.spr", "rel_path": "武当/wd_03_天际惊雷.spr", "sect": "Võ Đang", "sect_color": "#3b82f6", "skill_vi": "Thiưn Tể Tăn L?i", "skill_id": "26", "width": 450, "height": 450, "max_dim": 450, "frames": 17, "dirs": 1, "frames_per_dir": 17, "rendered_frames": 17, "cols": 8, "rows": 3, "interval": 50, "file_size": 663818, "webp_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_03_天际惊雷.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_03_天际惊雷.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_03_天际惊雷_sheet.webp"}, {"id": 209, "file_name": "wd_04_玄一无象.spr", "rel_path": "武当/wd_04_玄一无象.spr", "sect": "Võ Đang", "sect_color": "#3b82f6", "skill_vi": "Huyến Nhăt V? T?ờng", "skill_id": "27", "width": 320, "height": 320, "max_dim": 320, "frames": 8, "dirs": 1, "frames_per_dir": 8, "rendered_frames": 8, "cols": 8, "rows": 1, "interval": 1, "file_size": 179296, "webp_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_04_玄一无象.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_04_玄一无象.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_04_玄一无象_sheet.webp"}, {"id": 210, "file_name": "wd_05_剥及而复.spr", "rel_path": "武当/wd_05_剥及而复.spr", "sect": "Võ Đang", "sect_color": "#3b82f6", "skill_vi": "Bác Căp Nhi Phủc", "skill_id": "28", "width": 320, "height": 320, "max_dim": 320, "frames": 12, "dirs": 1, "frames_per_dir": 12, "rendered_frames": 12, "cols": 8, "rows": 2, "interval": 1, "file_size": 387804, "webp_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_05_剥及而复.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_05_剥及而复.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_05_剥及而复_sheet.webp"}, {"id": 211, "file_name": "wd_06_坐忘无我.spr", "rel_path": "武当/wd_06_坐忘无我.spr", "sect": "Võ Đang", "sect_color": "#3b82f6", "skill_vi": "Tọa Vọng Vô Ngã", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 36, "dirs": 1, "frames_per_dir": 36, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 30, "file_size": 75830, "webp_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_06_坐忘无我.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_06_坐忘无我.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_06_坐忘无我_sheet.webp"}, {"id": 212, "file_name": "wd_07_七星阵.spr", "rel_path": "武当/wd_07_七星阵.spr", "sect": "Võ Đang", "sect_color": "#3b82f6", "skill_vi": "wd_07_七星阵", "skill_id": "-", "width": 210, "height": 210, "max_dim": 210, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 40, "file_size": 120363, "webp_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_07_七星阵.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_07_七星阵.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_07_七星阵_sheet.webp"}, {"id": 213, "file_name": "wd_08_人剑合一.spr", "rel_path": "武当/wd_08_人剑合一.spr", "sect": "Võ Đang", "sect_color": "#3b82f6", "skill_vi": "wd_08_人剑合一", "skill_id": "-", "width": 160, "height": 160, "max_dim": 160, "frames": 30, "dirs": 1, "frames_per_dir": 30, "rendered_frames": 30, "cols": 8, "rows": 4, "interval": 30, "file_size": 27320, "webp_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_08_人剑合一.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_08_人剑合一.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_08_人剑合一_sheet.webp"}, {"id": 214, "file_name": "wd_09_人剑合一剑.spr", "rel_path": "武当/wd_09_人剑合一剑.spr", "sect": "Võ Đang", "sect_color": "#3b82f6", "skill_vi": "Nhơn Kiểm Hờp Nhăt 11", "skill_id": "95", "width": 450, "height": 450, "max_dim": 450, "frames": 11, "dirs": 1, "frames_per_dir": 11, "rendered_frames": 11, "cols": 8, "rows": 2, "interval": 50, "file_size": 211702, "webp_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_09_人剑合一剑.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_09_人剑合一剑.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_09_人剑合一剑_sheet.webp"}, {"id": 215, "file_name": "wd_10_无我无剑.spr", "rel_path": "武当/wd_10_无我无剑.spr", "sect": "Võ Đang", "sect_color": "#3b82f6", "skill_vi": "V? Ngả V? Kiểm", "skill_id": "29", "width": 240, "height": 240, "max_dim": 240, "frames": 96, "dirs": 16, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 1, "file_size": 347825, "webp_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_10_无我无剑.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_10_无我无剑.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/武当_wd_10_无我无剑_sheet.webp"}, {"id": 216, "file_name": "mag_bz_bin6_爆炸效果.spr", "rel_path": "翠烟/mag_bz_bin6_爆炸效果.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "NPC ?ánh xa (thỡy)", "skill_id": "200", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 2, "file_size": 135993, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_bz_bin6_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_bz_bin6_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_bz_bin6_爆炸效果_sheet.webp"}, {"id": 217, "file_name": "mag_bz_bin7_爆炸效果.spr", "rel_path": "翠烟/mag_bz_bin7_爆炸效果.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Triếu Kh?i Nguyễt Doanh", "skill_id": "217", "width": 320, "height": 320, "max_dim": 320, "frames": 18, "dirs": 1, "frames_per_dir": 18, "rendered_frames": 18, "cols": 8, "rows": 3, "interval": 2, "file_size": 196682, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_bz_bin7_爆炸效果.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_bz_bin7_爆炸效果.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_bz_bin7_爆炸效果_sheet.webp"}, {"id": 218, "file_name": "mag_cy_01_风云突起.spr", "rel_path": "翠烟/mag_cy_01_风云突起.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Phong Vơn ?ỗt Kh?i", "skill_id": "6", "width": 280, "height": 280, "max_dim": 280, "frames": 48, "dirs": 16, "frames_per_dir": 3, "rendered_frames": 3, "cols": 3, "rows": 1, "interval": 50, "file_size": 254888, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_01_风云突起.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_01_风云突起.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_01_风云突起_sheet.webp"}, {"id": 219, "file_name": "mag_cy_02_风卷残雪_a.spr", "rel_path": "翠烟/mag_cy_02_风卷残雪_a.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Phong Quyền Tàn Tuyểt (ãnh ?ỗng)", "skill_id": "196", "width": 320, "height": 320, "max_dim": 320, "frames": 7, "dirs": 1, "frames_per_dir": 7, "rendered_frames": 7, "cols": 7, "rows": 1, "interval": 40, "file_size": 31668, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_02_风卷残雪_a.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_02_风卷残雪_a.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_02_风卷残雪_a_sheet.webp"}, {"id": 220, "file_name": "mag_cy_02_风卷残雪_b.spr", "rel_path": "翠烟/mag_cy_02_风卷残雪_b.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Phong Quyền Tàn Tuyểt (ãnh ?ỗng)", "skill_id": "196", "width": 320, "height": 320, "max_dim": 320, "frames": 7, "dirs": 1, "frames_per_dir": 7, "rendered_frames": 7, "cols": 7, "rows": 1, "interval": 40, "file_size": 32125, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_02_风卷残雪_b.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_02_风卷残雪_b.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_02_风卷残雪_b_sheet.webp"}, {"id": 221, "file_name": "mag_cy_03_雨打梨花.spr", "rel_path": "翠烟/mag_cy_03_雨打梨花.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Vợ ?ã Lư Hoa", "skill_id": "8", "width": 320, "height": 320, "max_dim": 320, "frames": 5, "dirs": 1, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 50, "file_size": 36323, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_03_雨打梨花.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_03_雨打梨花.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_03_雨打梨花_sheet.webp"}, {"id": 222, "file_name": "mag_cy_04_牧野流星.spr", "rel_path": "翠烟/mag_cy_04_牧野流星.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Mủc Dả L?u Tinh a", "skill_id": "9", "width": 320, "height": 320, "max_dim": 320, "frames": 5, "dirs": 1, "frames_per_dir": 5, "rendered_frames": 5, "cols": 5, "rows": 1, "interval": 50, "file_size": 64441, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_04_牧野流星.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_04_牧野流星.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_04_牧野流星_sheet.webp"}, {"id": 223, "file_name": "mag_cy_05_碧海潮生_a.spr", "rel_path": "翠烟/mag_cy_05_碧海潮生_a.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Bích Hãi Triếu Sinh a", "skill_id": "10", "width": 320, "height": 320, "max_dim": 320, "frames": 6, "dirs": 1, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 50, "file_size": 121695, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_05_碧海潮生_a.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_05_碧海潮生_a.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_05_碧海潮生_a_sheet.webp"}, {"id": 224, "file_name": "mag_cy_05_碧海潮生_b.spr", "rel_path": "翠烟/mag_cy_05_碧海潮生_b.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Bích Hãi Triếu Sinhb", "skill_id": "11", "width": 320, "height": 320, "max_dim": 320, "frames": 48, "dirs": 16, "frames_per_dir": 3, "rendered_frames": 3, "cols": 3, "rows": 1, "interval": 40, "file_size": 163941, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_05_碧海潮生_b.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_05_碧海潮生_b.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_05_碧海潮生_b_sheet.webp"}, {"id": 225, "file_name": "mag_cy_06_雪盾.spr", "rel_path": "翠烟/mag_cy_06_雪盾.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "mag_cy_06_雪盾", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 40, "file_size": 56646, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_06_雪盾.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_06_雪盾.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_06_雪盾_sheet.webp"}, {"id": 226, "file_name": "mag_cy_07_冰盾.spr", "rel_path": "翠烟/mag_cy_07_冰盾.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "mag_cy_07_冰盾", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 40, "file_size": 81526, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_07_冰盾.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_07_冰盾.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_07_冰盾_sheet.webp"}, {"id": 227, "file_name": "mag_cy_08_冰墙_b.spr", "rel_path": "翠烟/mag_cy_08_冰墙_b.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "?õ?ừ?ừấẳệềà?", "skill_id": "308", "width": 320, "height": 320, "max_dim": 320, "frames": 7, "dirs": 1, "frames_per_dir": 7, "rendered_frames": 7, "cols": 7, "rows": 1, "interval": 150, "file_size": 45099, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_08_冰墙_b.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_08_冰墙_b.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_08_冰墙_b_sheet.webp"}, {"id": 228, "file_name": "mag_cy_09_雪影.spr", "rel_path": "翠烟/mag_cy_09_雪影.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Tuyết Ảnh", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 30, "file_size": 166435, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_09_雪影.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_09_雪影.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_09_雪影_sheet.webp"}, {"id": 229, "file_name": "mag_cy_10_观音散雪.spr", "rel_path": "翠烟/mag_cy_10_观音散雪.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Phở Vơn Tán Tuyểt", "skill_id": "12", "width": 480, "height": 480, "max_dim": 480, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 50, "file_size": 597009, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_10_观音散雪.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_10_观音散雪.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_10_观音散雪_sheet.webp"}, {"id": 230, "file_name": "mag_cy_11_补血术.spr", "rel_path": "翠烟/mag_cy_11_补血术.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "Trĩ liễu thuât", "skill_id": "13", "width": 320, "height": 240, "max_dim": 320, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 30, "file_size": 60737, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_11_补血术.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_11_补血术.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_11_补血术_sheet.webp"}, {"id": 231, "file_name": "mag_cy_12_摄心术.spr", "rel_path": "翠烟/mag_cy_12_摄心术.spr", "sect": "Thúy Yên", "sect_color": "#06b6d4", "skill_vi": "mag_cy_12_摄心术", "skill_id": "-", "width": 250, "height": 250, "max_dim": 250, "frames": 4, "dirs": 1, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 60, "file_size": 9802, "webp_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_12_摄心术.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_12_摄心术.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/翠烟_mag_cy_12_摄心术_sheet.webp"}, {"id": 232, "file_name": "bz_棰1.spr", "rel_path": "补充/bz_棰1.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "C?ng kích Song chởy", "skill_id": "98", "width": 200, "height": 200, "max_dim": 200, "frames": 6, "dirs": 1, "frames_per_dir": 6, "rendered_frames": 6, "cols": 6, "rows": 1, "interval": 20, "file_size": 26184, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_bz_棰1.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_bz_棰1.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_bz_棰1_sheet.webp"}, {"id": 233, "file_name": "mag_spe_bo_电.spr", "rel_path": "补充/mag_spe_bo_电.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "?iễn ba", "skill_id": "84", "width": 240, "height": 240, "max_dim": 240, "frames": 160, "dirs": 16, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 408069, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_bo_电.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_bo_电.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_bo_电_sheet.webp"}, {"id": 234, "file_name": "mag_spe_bo_白.spr", "rel_path": "补充/mag_spe_bo_白.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Bạch Ba", "skill_id": "81", "width": 240, "height": 240, "max_dim": 240, "frames": 320, "dirs": 32, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 246991, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_bo_白.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_bo_白.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_bo_白_sheet.webp"}, {"id": 235, "file_name": "mag_spe_bo_绿.spr", "rel_path": "补充/mag_spe_bo_绿.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Lủc Ba", "skill_id": "80", "width": 240, "height": 240, "max_dim": 240, "frames": 320, "dirs": 32, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 337104, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_bo_绿.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_bo_绿.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_bo_绿_sheet.webp"}, {"id": 236, "file_name": "mag_spe_bo_蓝.spr", "rel_path": "补充/mag_spe_bo_蓝.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Lam Ba", "skill_id": "78", "width": 240, "height": 240, "max_dim": 240, "frames": 320, "dirs": 32, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 334784, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_bo_蓝.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_bo_蓝.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_bo_蓝_sheet.webp"}, {"id": 237, "file_name": "mag_spe_升级.spr", "rel_path": "补充/mag_spe_升级.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "mag_spe_升级", "skill_id": "-", "width": 320, "height": 240, "max_dim": 320, "frames": 19, "dirs": 1, "frames_per_dir": 19, "rendered_frames": 19, "cols": 8, "rows": 3, "interval": 50, "file_size": 235961, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_升级.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_升级.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_升级_sheet.webp"}, {"id": 238, "file_name": "mag_spe_登录.spr", "rel_path": "补充/mag_spe_登录.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "L?u Quang Phi Vợ", "skill_id": "230", "width": 450, "height": 450, "max_dim": 450, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 50, "file_size": 510818, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_登录.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_登录.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_登录_sheet.webp"}, {"id": 239, "file_name": "mag_spe_登陆.spr", "rel_path": "补充/mag_spe_登陆.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Hoa Khí ?iễp Vợ", "skill_id": "229", "width": 450, "height": 450, "max_dim": 450, "frames": 20, "dirs": 1, "frames_per_dir": 20, "rendered_frames": 20, "cols": 8, "rows": 3, "interval": 50, "file_size": 474624, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_登陆.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_登陆.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_登陆_sheet.webp"}, {"id": 240, "file_name": "mag_spe_眩晕.spr", "rel_path": "补充/mag_spe_眩晕.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "mag_spe_眩晕", "skill_id": "-", "width": 320, "height": 240, "max_dim": 320, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 50, "file_size": 61707, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_眩晕.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_眩晕.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_眩晕_sheet.webp"}, {"id": 241, "file_name": "mag_spe_组队.spr", "rel_path": "补充/mag_spe_组队.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "mag_spe_组队", "skill_id": "-", "width": 120, "height": 120, "max_dim": 120, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 100, "file_size": 12491, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_组队.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_组队.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_组队_sheet.webp"}, {"id": 242, "file_name": "mag_spe_重生.spr", "rel_path": "补充/mag_spe_重生.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "mag_spe_重生", "skill_id": "-", "width": 320, "height": 240, "max_dim": 320, "frames": 19, "dirs": 1, "frames_per_dir": 19, "rendered_frames": 19, "cols": 8, "rows": 3, "interval": 50, "file_size": 250688, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_重生.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_重生.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_mag_spe_重生_sheet.webp"}, {"id": 243, "file_name": "刀剑爆炸.spr", "rel_path": "补充/刀剑爆炸.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "C?ng kích vât lý", "skill_id": "63", "width": 120, "height": 120, "max_dim": 120, "frames": 4, "dirs": 1, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 20, "file_size": 7540, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_刀剑爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_刀剑爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_刀剑爆炸_sheet.webp"}, {"id": 244, "file_name": "劫富济贫2.spr", "rel_path": "补充/劫富济贫2.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "劫富济贫2", "skill_id": "-", "width": 320, "height": 320, "max_dim": 320, "frames": 10, "dirs": 1, "frames_per_dir": 10, "rendered_frames": 10, "cols": 8, "rows": 2, "interval": 25, "file_size": 155420, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_劫富济贫2.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_劫富济贫2.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_劫富济贫2_sheet.webp"}, {"id": 245, "file_name": "幸运星.spr", "rel_path": "补充/幸运星.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "幸运星", "skill_id": "-", "width": 320, "height": 240, "max_dim": 320, "frames": 15, "dirs": 1, "frames_per_dir": 15, "rendered_frames": 15, "cols": 8, "rows": 2, "interval": 50, "file_size": 93444, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_幸运星.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_幸运星.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_幸运星_sheet.webp"}, {"id": 246, "file_name": "棍棒爆炸.spr", "rel_path": "补充/棍棒爆炸.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Hoành Tão Lủc Hờp", "skill_id": "75", "width": 120, "height": 120, "max_dim": 120, "frames": 4, "dirs": 1, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 20, "file_size": 8060, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_棍棒爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_棍棒爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_棍棒爆炸_sheet.webp"}, {"id": 247, "file_name": "烟花.spr", "rel_path": "补充/烟花.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Pháo Hoa", "skill_id": "108", "width": 640, "height": 480, "max_dim": 640, "frames": 23, "dirs": 1, "frames_per_dir": 23, "rendered_frames": 23, "cols": 8, "rows": 3, "interval": 200, "file_size": 1607136, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_烟花.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_烟花.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_烟花_sheet.webp"}, {"id": 248, "file_name": "玫瑰01.spr", "rel_path": "补充/玫瑰01.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Hoa họng 1", "skill_id": "118", "width": 450, "height": 450, "max_dim": 450, "frames": 50, "dirs": 1, "frames_per_dir": 50, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 1, "file_size": 40280, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰01.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰01.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰01_sheet.webp"}, {"id": 249, "file_name": "玫瑰02.spr", "rel_path": "补充/玫瑰02.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Hoa họng 2", "skill_id": "119", "width": 450, "height": 450, "max_dim": 450, "frames": 45, "dirs": 1, "frames_per_dir": 45, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 1, "file_size": 36260, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰02.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰02.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰02_sheet.webp"}, {"id": 250, "file_name": "玫瑰03.spr", "rel_path": "补充/玫瑰03.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Hoa họng 2", "skill_id": "119", "width": 450, "height": 450, "max_dim": 450, "frames": 42, "dirs": 1, "frames_per_dir": 42, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 23, "file_size": 38579, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰03.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰03.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰03_sheet.webp"}, {"id": 251, "file_name": "玫瑰04.spr", "rel_path": "补充/玫瑰04.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Hoa họng 3", "skill_id": "120", "width": 450, "height": 450, "max_dim": 450, "frames": 38, "dirs": 1, "frames_per_dir": 38, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 1, "file_size": 40607, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰04.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰04.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰04_sheet.webp"}, {"id": 252, "file_name": "玫瑰05.spr", "rel_path": "补充/玫瑰05.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Hoa họng 4", "skill_id": "121", "width": 450, "height": 450, "max_dim": 450, "frames": 35, "dirs": 1, "frames_per_dir": 35, "rendered_frames": 32, "cols": 8, "rows": 4, "interval": 1, "file_size": 27862, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰05.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰05.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰05_sheet.webp"}, {"id": 253, "file_name": "玫瑰06.spr", "rel_path": "补充/玫瑰06.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Hoa họng 6", "skill_id": "123", "width": 450, "height": 450, "max_dim": 450, "frames": 27, "dirs": 1, "frames_per_dir": 27, "rendered_frames": 27, "cols": 8, "rows": 4, "interval": 1, "file_size": 20976, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰06.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰06.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰06_sheet.webp"}, {"id": 254, "file_name": "玫瑰地面01.spr", "rel_path": "补充/玫瑰地面01.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Hoa Họng trưn mặt ?ăt", "skill_id": "124", "width": 450, "height": 450, "max_dim": 450, "frames": 1, "dirs": 1, "frames_per_dir": 1, "rendered_frames": 1, "cols": 1, "rows": 1, "interval": 1, "file_size": 1632, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰地面01.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰地面01.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰地面01_sheet.webp"}, {"id": 255, "file_name": "玫瑰地面03.spr", "rel_path": "补充/玫瑰地面03.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Hoa Họng trưn mặt ?ăt", "skill_id": "124", "width": 400, "height": 400, "max_dim": 400, "frames": 16, "dirs": 1, "frames_per_dir": 16, "rendered_frames": 16, "cols": 8, "rows": 2, "interval": 100, "file_size": 79739, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰地面03.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰地面03.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_玫瑰地面03_sheet.webp"}, {"id": 256, "file_name": "远程攻击.spr", "rel_path": "补充/远程攻击.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "C?ng kích vât lý gấn", "skill_id": "65", "width": 160, "height": 120, "max_dim": 160, "frames": 16, "dirs": 16, "frames_per_dir": 1, "rendered_frames": 1, "cols": 1, "rows": 1, "interval": 1, "file_size": 5584, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_远程攻击.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_远程攻击.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_远程攻击_sheet.webp"}, {"id": 257, "file_name": "飞标爆炸.spr", "rel_path": "补充/飞标爆炸.spr", "sect": "Kỹ Năng Bổ Sung", "sect_color": "#a855f7", "skill_vi": "Tiều Lý Phi ?ao", "skill_id": "106", "width": 140, "height": 140, "max_dim": 140, "frames": 4, "dirs": 1, "frames_per_dir": 4, "rendered_frames": 4, "cols": 4, "rows": 1, "interval": 20, "file_size": 7053, "webp_url": "Client_VLTK_SHXT/data/skills/preview/补充_飞标爆炸.webp", "png_url": "Client_VLTK_SHXT/data/skills/preview/补充_飞标爆炸.png", "sheet_url": "Client_VLTK_SHXT/data/skills/preview/补充_飞标爆炸_sheet.webp"}];
+
+  const sprGrid = document.getElementById('sprGrid');
+  const sectTabs = document.getElementById('sectTabs');
+  const searchInput = document.getElementById('searchInput');
+  const sortSelect = document.getElementById('sortSelect');
+  const btnModeProp = document.getElementById('btnModeProp');
+  const btnModeGrid = document.getElementById('btnModeGrid');
+  const zoomRange = document.getElementById('zoomRange');
+  const zoomVal = document.getElementById('zoomVal');
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modalClose = document.getElementById('modalClose');
+
+  const fpsSlider = document.getElementById('fpsSlider');
+  const fpsDisplay = document.getElementById('fpsDisplay');
+  const globalPlayPauseBtn = document.getElementById('globalPlayPauseBtn');
+  const playPauseIcon = document.getElementById('playPauseIcon');
+  const playPauseText = document.getElementById('playPauseText');
+
+  // Animation Engine State
+  let globalFps = 13; // Default 13 FPS
+  let isPlaying = true;
+  let currentSect = 'ALL';
+  let currentSearch = '';
+  let currentSort = 'sect';
+  let isProportional = true;
+  let zoomScale = 1.0;
+  let currentBg = '#000000';
+
+  // Loaded Spritesheet Image Cache
+  const sheetCache = {};
+  function getSheetImage(url) {
+    if (!sheetCache[url]) {
+      const img = new Image();
+      img.src = url;
+      sheetCache[url] = img;
+    }
+    return sheetCache[url];
+  }
+
+  // Item map for 100% fail-safe lookup
+  const itemMap = new Map(SPR_DATA.map(it => [String(it.id), it]));
+
+  // Active Canvases tracking for IntersectionObserver
+  const activeCards = new Map(); // canvas element -> item metadata
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const card = entry.target;
+      const canvas = card.querySelector('canvas');
+      if (!canvas) return;
+      const item = canvas._itemData || itemMap.get(String(canvas.dataset.id));
+      if (entry.isIntersecting && item) {
+        activeCards.set(canvas, item);
+        drawCardFrame(canvas, item, globalFrameTick);
+      } else {
+        activeCards.delete(canvas);
+      }
+    });
+  }, { rootMargin: '200px' });
+
+  // Main Animation Loop
+  let lastTimestamp = performance.now();
+  let accumulatedTime = 0;
+  let globalFrameTick = 0;
+
+  function animLoop(now) {
+    const delta = now - lastTimestamp;
+    lastTimestamp = now;
+
+    if (isPlaying) {
+      accumulatedTime += delta;
+      const frameDuration = 1000 / globalFps;
+
+      if (accumulatedTime >= frameDuration) {
+        const advanceCount = Math.floor(accumulatedTime / frameDuration);
+        accumulatedTime %= frameDuration;
+        globalFrameTick += advanceCount;
+
+        // Render visible cards
+        activeCards.forEach((item, canvas) => {
+          if (canvas && item) {
+            drawCardFrame(canvas, item, globalFrameTick);
+          }
+        });
+
+        // Render Modal if open
+        if (modalActiveItem && modalCanvas) {
+          drawModalFrame(modalActiveItem, globalFrameTick);
+        }
+      }
+    }
+
+    requestAnimationFrame(animLoop);
+  }
+  requestAnimationFrame(animLoop);
+
+  function drawCardFrame(canvas, item, tick) {
+    if (!canvas || !item || !item.sheet_url) return;
+    const img = getSheetImage(item.sheet_url);
+    if (!img.complete || img.naturalWidth === 0) return;
+
+    const frameIdx = tick % item.rendered_frames;
+    const col = frameIdx % item.cols;
+    const row = Math.floor(frameIdx / item.cols);
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, item.width, item.height);
+    ctx.drawImage(img, col * item.width, row * item.height, item.width, item.height, 0, 0, item.width, item.height);
+  }
+
+  // FPS Controls
+  function updateFps(fps) {
+    globalFps = parseInt(fps);
+    fpsSlider.value = globalFps;
+    fpsDisplay.textContent = `${globalFps} fps`;
+
+    document.querySelectorAll('.fps-btn').forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.fps) === globalFps);
+    });
+
+    document.querySelectorAll('.fps-indicator-badge').forEach(badge => {
+      badge.textContent = `${globalFps} fps`;
+    });
+  }
+
+  fpsSlider.oninput = (e) => updateFps(e.target.value);
+  document.querySelectorAll('.fps-btn[data-fps]').forEach(btn => {
+    btn.onclick = () => updateFps(btn.dataset.fps);
+  });
+
+  globalPlayPauseBtn.onclick = () => {
+    isPlaying = !isPlaying;
+    playPauseIcon.textContent = isPlaying ? '⏸' : '▶';
+    playPauseText.textContent = isPlaying ? 'Tạm dừng' : 'Tiếp tục';
+    globalPlayPauseBtn.classList.toggle('active', !isPlaying);
+  };
+
+  // Build Sect Tabs
+  const sects = {};
+  SPR_DATA.forEach(item => {
+    sects[item.sect] = (sects[item.sect] || 0) + 1;
+  });
+
+  const allTab = document.createElement('button');
+  allTab.className = 'tab-btn active';
+  allTab.innerHTML = `Tất cả <span class="count">${SPR_DATA.length}</span>`;
+  allTab.onclick = () => selectSect('ALL');
+  sectTabs.appendChild(allTab);
+
+  Object.entries(sects).sort((a,b) => b[1] - a[1]).forEach(([sName, count]) => {
+    const tab = document.createElement('button');
+    tab.className = 'tab-btn';
+    tab.dataset.sect = sName;
+    tab.innerHTML = `${sName} <span class="count">${count}</span>`;
+    tab.onclick = () => selectSect(sName);
+    sectTabs.appendChild(tab);
+  });
+
+  function selectSect(sName) {
+    currentSect = sName;
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.toggle('active', (sName === 'ALL' && !btn.dataset.sect) || btn.dataset.sect === sName);
+    });
+    render();
+  }
+
+  function getFilteredData() {
+    let list = SPR_DATA.filter(item => {
+      if (currentSect !== 'ALL' && item.sect !== currentSect) return false;
+      if (currentSearch) {
+        const q = currentSearch.toLowerCase();
+        const text = `${item.file_name} ${item.skill_vi} ${item.sect} ${item.rel_path}`.toLowerCase();
+        if (!text.includes(q)) return false;
+      }
+      return true;
+    });
+
+    list.sort((a, b) => {
+      if (currentSort === 'sect') return a.sect.localeCompare(b.sect) || a.file_name.localeCompare(b.file_name);
+      if (currentSort === 'size_desc') return b.max_dim - a.max_dim;
+      if (currentSort === 'size_asc') return a.max_dim - b.max_dim;
+      if (currentSort === 'frames_desc') return b.frames - a.frames;
+      if (currentSort === 'name') return a.file_name.localeCompare(b.file_name);
+      return 0;
+    });
+
+    return list;
+  }
+
+  function render() {
+    observer.disconnect();
+    activeCards.clear();
+    const list = getFilteredData();
+    sprGrid.innerHTML = '';
+
+    if (list.length === 0) {
+      sprGrid.innerHTML = `<div class="empty-state">Không tìm thấy file .spr nào phù hợp với bộ lọc hiện tại.</div>`;
+      return;
+    }
+
+    list.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'spr-card';
+      const boxW = Math.max(120, item.width);
+      const boxH = Math.max(120, item.height);
+      card.style.setProperty('--box-w', `${boxW}px`);
+      card.style.setProperty('--box-h', `${boxH}px`);
+      card.style.setProperty('--zoom-scale', zoomScale);
+
+      const bgStyle = currentBg === 'grid' 
+        ? 'background: repeating-conic-gradient(#222 0% 25%, #333 0% 50%) 50% / 10px 10px;' 
+        : 'background:' + currentBg;
+
+      card.innerHTML = `
+        <div class="canvas-box-wrap" style="${bgStyle}">
+          <canvas width="${item.width}" height="${item.height}" data-id="${item.id}"></canvas>
+          <span class="frame-badge">${item.frames}f (${item.dirs}h)</span>
+          <span class="fps-indicator-badge">${globalFps} fps</span>
+          <span class="dim-badge">${item.width} × ${item.height}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-header-row">
+            <span class="sect-tag" style="color: ${item.sect_color};">${item.sect}</span>
+            ${item.skill_id !== '-' ? `<span style="font-size: 11px; color: #94a3b8; font-family: monospace;">ID: ${item.skill_id}</span>` : ''}
+          </div>
+          <div class="skill-title" title="${item.skill_vi}">${item.skill_vi}</div>
+          <div class="file-name" title="${item.rel_path}">${item.file_name}</div>
+          <div class="card-footer">
+            <span>${(item.file_size / 1024).toFixed(1)} KB</span>
+            <span>${item.rendered_frames} frames / loop</span>
+          </div>
+        </div>
+      `;
+
+      const canvas = card.querySelector('canvas');
+      canvas._itemData = item;
+
+      // Pre-draw representative first frame when image is ready
+      const img = getSheetImage(item.sheet_url);
+      if (img.complete && img.naturalWidth > 0) {
+        drawCardFrame(canvas, item, 0);
+      } else {
+        img.addEventListener('load', () => drawCardFrame(canvas, item, 0), { once: true });
+      }
+
+      card.onclick = () => openModal(item);
+      sprGrid.appendChild(card);
+      observer.observe(card);
+    });
+  }
+
+  // Modal Player Implementation
+  let modalActiveItem = null;
+  const modalCanvas = document.getElementById('modalCanvas');
+  const modalPlayPause = document.getElementById('modalPlayPause');
+  const modalPrevFrame = document.getElementById('modalPrevFrame');
+  const modalNextFrame = document.getElementById('modalNextFrame');
+  const modalTimeline = document.getElementById('modalTimeline');
+  const modalFrameIndicator = document.getElementById('modalFrameIndicator');
+  let modalManualFrame = 0;
+  let modalIsPlaying = true;
+
+  function openModal(item) {
+    modalActiveItem = item;
+    modalManualFrame = 0;
+    modalIsPlaying = true;
+    modalPlayPause.textContent = '⏸ Dừng';
+
+    document.getElementById('modalTitle').textContent = `${item.skill_vi} (${item.file_name})`;
+    modalCanvas.width = item.width;
+    modalCanvas.height = item.height;
+
+    modalTimeline.max = item.rendered_frames - 1;
+    modalTimeline.value = 0;
+    modalFrameIndicator.textContent = `Frame: 1 / ${item.rendered_frames}`;
+
+    drawModalFrame(item, 0);
+
+    const details = document.getElementById('modalDetails');
+    details.innerHTML = `
+      <div class="detail-item">
+        <div class="detail-label">Tên Tiếng Việt</div>
+        <div class="detail-value" style="color: #eab308;">${item.skill_vi}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Môn Phái</div>
+        <div class="detail-value" style="color: ${item.sect_color};">${item.sect}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Kích thước Canvas</div>
+        <div class="detail-value">${item.width} × ${item.height} px</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Tổng Frames / Số Hướng</div>
+        <div class="detail-value">${item.frames} frames / ${item.dirs} hướng (${item.frames_per_dir} f/h)</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Tốc độ hiển thị</div>
+        <div class="detail-value">${globalFps} FPS (1 frame = ${(1000/globalFps).toFixed(1)} ms)</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Dung lượng File SPR</div>
+        <div class="detail-value">${(item.file_size / 1024).toFixed(2)} KB</div>
+      </div>
+      <div class="detail-item" style="grid-column: 1 / -1;">
+        <div class="detail-label">Đường dẫn tương đối</div>
+        <div class="detail-value" style="font-size: 12px; word-break: break-all;">data/skills/${item.rel_path}</div>
+      </div>
+    `;
+
+    modalBackdrop.classList.add('open');
+  }
+
+  function drawModalFrame(item, tick) {
+    if (!item) return;
+    const img = getSheetImage(item.sheet_url);
+    if (!img.complete || img.naturalWidth === 0) return;
+
+    let fIdx = modalIsPlaying ? (tick % item.rendered_frames) : modalManualFrame;
+    modalManualFrame = fIdx;
+    modalTimeline.value = fIdx;
+    modalFrameIndicator.textContent = `Frame: ${fIdx + 1} / ${item.rendered_frames}`;
+
+    const col = fIdx % item.cols;
+    const row = Math.floor(fIdx / item.cols);
+
+    const ctx = modalCanvas.getContext('2d');
+    ctx.clearRect(0, 0, item.width, item.height);
+    ctx.drawImage(img, col * item.width, row * item.height, item.width, item.height, 0, 0, item.width, item.height);
+  }
+
+  modalPlayPause.onclick = () => {
+    modalIsPlaying = !modalIsPlaying;
+    modalPlayPause.textContent = modalIsPlaying ? '⏸ Dừng' : '▶ Chạy';
+  };
+
+  modalPrevFrame.onclick = () => {
+    if (!modalActiveItem) return;
+    modalIsPlaying = false;
+    modalPlayPause.textContent = '▶ Chạy';
+    modalManualFrame = (modalManualFrame - 1 + modalActiveItem.rendered_frames) % modalActiveItem.rendered_frames;
+    drawModalFrame(modalActiveItem, modalManualFrame);
+  };
+
+  modalNextFrame.onclick = () => {
+    if (!modalActiveItem) return;
+    modalIsPlaying = false;
+    modalPlayPause.textContent = '▶ Chạy';
+    modalManualFrame = (modalManualFrame + 1) % modalActiveItem.rendered_frames;
+    drawModalFrame(modalActiveItem, modalManualFrame);
+  };
+
+  modalTimeline.oninput = (e) => {
+    if (!modalActiveItem) return;
+    modalIsPlaying = false;
+    modalPlayPause.textContent = '▶ Chạy';
+    modalManualFrame = parseInt(e.target.value);
+    drawModalFrame(modalActiveItem, modalManualFrame);
+  };
+
+  modalClose.onclick = () => {
+    modalBackdrop.classList.remove('open');
+    modalActiveItem = null;
+  };
+  modalBackdrop.onclick = (e) => {
+    if (e.target === modalBackdrop) {
+      modalBackdrop.classList.remove('open');
+      modalActiveItem = null;
+    }
+  };
+
+  // Search and Sort
+  searchInput.oninput = (e) => {
+    currentSearch = e.target.value.trim();
+    render();
+  };
+
+  sortSelect.onchange = (e) => {
+    currentSort = e.target.value;
+    render();
+  };
+
+  // View Mode Toggles
+  btnModeProp.onclick = () => {
+    isProportional = true;
+    btnModeProp.classList.add('active');
+    btnModeGrid.classList.remove('active');
+    sprGrid.classList.add('proportional-mode');
+    render();
+  };
+
+  btnModeGrid.onclick = () => {
+    isProportional = false;
+    btnModeGrid.classList.add('active');
+    btnModeProp.classList.remove('active');
+    sprGrid.classList.remove('proportional-mode');
+    render();
+  };
+
+  // Zoom
+  zoomRange.oninput = (e) => {
+    zoomScale = parseFloat(e.target.value);
+    zoomVal.textContent = `${zoomScale.toFixed(1)}x`;
+    document.querySelectorAll('.spr-card').forEach(c => {
+      c.style.setProperty('--zoom-scale', zoomScale);
+    });
+  };
+
+  // Background Switcher
+  document.querySelectorAll('.bg-circle').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.bg-circle').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentBg = btn.dataset.bg;
+      document.querySelectorAll('.canvas-box-wrap').forEach(box => {
+        if (currentBg === 'grid') {
+          box.style.background = 'repeating-conic-gradient(#222 0% 25%, #333 0% 50%) 50% / 10px 10px';
+        } else {
+          box.style.background = currentBg;
+        }
+      });
+    };
+  });
+
+  // Initial render
+  render();
+</script>
+</body>
+</html>
